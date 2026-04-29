@@ -50,6 +50,18 @@ class InstitutionRanking(BaseModel):
         description="Normalized institution name, e.g. 'University of Illinois Urbana-Champaign', 'EPFL'.",
         examples=["ETH Zurich"],
     )
+    country: str | None = Field(
+        default=None,
+        description="Country name resolved from affiliation, e.g. 'United States', 'Germany'. Null if unresolved.",
+        examples=["United States"],
+    )
+    country_code: str | None = Field(
+        default=None,
+        min_length=2,
+        max_length=2,
+        description="ISO 3166-1 alpha-2 country code, e.g. 'US', 'DE'. Null if unresolved.",
+        examples=["US"],
+    )
     combined_score: int = Field(
         ge=3,
         description="Total score: artifact_score + citation_score + ae_score. Example: 633.",
@@ -129,6 +141,11 @@ class InstitutionRanking(BaseModel):
     top_authors: list[TopAuthor] = Field(
         max_length=20,
         description="Up to 20 top-scoring authors from this institution, sorted by combined_score descending.",
+    )
+    scope: str | None = Field(
+        default=None,
+        description="Scope tag for scoped rankings, e.g. 'systems' or 'OSDI'. Null in overall rankings.",
+        examples=["systems"],
     )
 
     model_config = {"extra": "forbid"}
