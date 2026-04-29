@@ -12,6 +12,7 @@ Usage:
 import argparse
 import logging
 import re
+import statistics
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
@@ -290,6 +291,8 @@ def aggregate_stats(all_stats):
             "total_views": 0,
             "total_downloads": 0,
             "_seen_repos": set(),
+            "_star_values": [],
+            "_fork_values": [],
         }
     )
 
@@ -304,8 +307,12 @@ def aggregate_stats(all_stats):
         "total_downloads": 0,
         "avg_stars": 0,
         "avg_forks": 0,
+        "median_stars": 0,
+        "median_forks": 0,
     }
     overall_seen_repos: set[str] = set()
+    overall_star_values: list[int] = []
+    overall_fork_values: list[int] = []
 
     for s in all_stats:
         conf = s["conference"]
@@ -361,6 +368,8 @@ def aggregate_stats(all_stats):
                 by_year[year]["total_forks"] += forks
                 by_year[year]["max_stars"] = max(by_year[year]["max_stars"], stars)
                 by_year[year]["max_forks"] = max(by_year[year]["max_forks"], forks)
+                by_year[year]["_star_values"].append(stars)
+                by_year[year]["_fork_values"].append(forks)
 
             if repo_key not in overall_seen_repos:
                 overall_seen_repos.add(repo_key)
@@ -369,6 +378,8 @@ def aggregate_stats(all_stats):
                 overall["total_forks"] += forks
                 overall["max_stars"] = max(overall["max_stars"], stars)
                 overall["max_forks"] = max(overall["max_forks"], forks)
+                overall_star_values.append(stars)
+                overall_fork_values.append(forks)
 
         elif s["source"] == "zenodo":
             views = s.get("zenodo_views", 0) or 0
@@ -389,6 +400,8 @@ def aggregate_stats(all_stats):
     if overall["github_repos"] > 0:
         overall["avg_stars"] = round(overall["total_stars"] / overall["github_repos"], 1)
         overall["avg_forks"] = round(overall["total_forks"] / overall["github_repos"], 1)
+        overall["median_stars"] = round(statistics.median(overall_star_values), 1)
+        overall["median_forks"] = round(statistics.median(overall_fork_values), 1)
 
     # Convert to serializable format
     conf_stats = []
@@ -396,6 +409,11 @@ def aggregate_stats(all_stats):
         d = by_conf[conf_name]
         avg_stars = round(d["total_stars"] / d["github_repos"], 1) if d["github_repos"] > 0 else 0
         avg_forks = round(d["total_forks"] / d["github_repos"], 1) if d["github_repos"] > 0 else 0
+        # Compute conference-level medians from all_github_entries (deduplicated by _seen_repos)
+        conf_star_vals = sorted(e["stars"] for e in d["all_github_entries"])
+        conf_fork_vals = sorted(e["forks"] for e in d["all_github_entries"])
+        median_stars = round(statistics.median(conf_star_vals), 1) if conf_star_vals else 0
+        median_forks = round(statistics.median(conf_fork_vals), 1) if conf_fork_vals else 0
         year_list = []
         for yr in sorted(d["years"].keys()):
             yd = d["years"][yr]
@@ -419,6 +437,8 @@ def aggregate_stats(all_stats):
                 "total_forks": d["total_forks"],
                 "avg_stars": avg_stars,
                 "avg_forks": avg_forks,
+                "median_stars": median_stars,
+                "median_forks": median_forks,
                 "max_stars": d["max_stars"],
                 "max_forks": d["max_forks"],
                 "years": year_list,
@@ -431,6 +451,8 @@ def aggregate_stats(all_stats):
         d = by_year[yr]
         avg_stars = round(d["total_stars"] / d["github_repos"], 1) if d["github_repos"] > 0 else 0
         avg_forks = round(d["total_forks"] / d["github_repos"], 1) if d["github_repos"] > 0 else 0
+        median_stars = round(statistics.median(d["_star_values"]), 1) if d["_star_values"] else 0
+        median_forks = round(statistics.median(d["_fork_values"]), 1) if d["_fork_values"] else 0
         year_stats.append(
             {
                 "year": yr,
@@ -439,6 +461,8 @@ def aggregate_stats(all_stats):
                 "total_forks": d["total_forks"],
                 "avg_stars": avg_stars,
                 "avg_forks": avg_forks,
+                "median_stars": median_stars,
+                "median_forks": median_forks,
                 "max_stars": d["max_stars"],
                 "max_forks": d["max_forks"],
             }
