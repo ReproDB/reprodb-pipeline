@@ -652,9 +652,22 @@ def main():
         # then all repos from all_github_repos are ranked globally.
         all_repos = aggregated.get("all_github_repos", [])
 
+        # Sub-path suffixes indicating the artifact lives inside a larger project.
+        # Stars belong to the parent repo, so these are excluded from rankings.
+        _SUBPATH_MARKERS = ("/tree/", "/blob/", "/releases/", "/tag/", "/commit/", "/pkgs/")
+
+        def _is_subpath_repo(url: str) -> bool:
+            """True if the URL points to a branch/tag/path inside a larger repo."""
+            return any(marker in url for marker in _SUBPATH_MARKERS)
+
         def _build_top_repos(repos, limit=50):
-            """Build a sorted top-repos list from all_github_repos entries."""
-            top = sorted(repos, key=lambda x: x.get("stars", 0), reverse=True)[:limit]
+            """Build a sorted top-repos list from all_github_repos entries.
+
+            Repos whose URL points to a sub-path (branch/tag/release) of a
+            larger project are excluded — their star counts are misleading.
+            """
+            candidates = [r for r in repos if not _is_subpath_repo(r.get("url", ""))]
+            top = sorted(candidates, key=lambda x: x.get("stars", 0), reverse=True)[:limit]
             result = []
             for r in top:
                 url = r.get("url", "")
