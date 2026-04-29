@@ -274,7 +274,9 @@ def aggregate_stats(all_stats):
             "zenodo_repos": 0,
             "total_views": 0,
             "total_downloads": 0,
-            "years": defaultdict(lambda: {"github_repos": 0, "stars": 0, "forks": 0, "_star_values": [], "_fork_values": []}),
+            "years": defaultdict(
+                lambda: {"github_repos": 0, "stars": 0, "forks": 0, "_star_values": [], "_fork_values": []}
+            ),
             "all_github_entries": [],
             "_seen_repos": set(),  # track repos already counted for this conf
         }
@@ -830,19 +832,21 @@ def main():
                     area_p75_stars = area_p25_stars
                     area_p25_forks = round(statistics.median(area_forks), 1)
                     area_p75_forks = area_p25_forks
-                by_area.append({
-                    "name": area_name,
-                    "github_repos": len(area_repos),
-                    "total_stars": sum(area_stars),
-                    "total_forks": sum(area_forks),
-                    "median_stars": round(statistics.median(area_stars), 1),
-                    "median_forks": round(statistics.median(area_forks), 1),
-                    "p25_stars": area_p25_stars,
-                    "p75_stars": area_p75_stars,
-                    "p25_forks": area_p25_forks,
-                    "p75_forks": area_p75_forks,
-                    "max_stars": max(area_stars),
-                })
+                by_area.append(
+                    {
+                        "name": area_name,
+                        "github_repos": len(area_repos),
+                        "total_stars": sum(area_stars),
+                        "total_forks": sum(area_forks),
+                        "median_stars": round(statistics.median(area_stars), 1),
+                        "median_forks": round(statistics.median(area_forks), 1),
+                        "p25_stars": area_p25_stars,
+                        "p75_stars": area_p75_stars,
+                        "p25_forks": area_p25_forks,
+                        "p75_forks": area_p75_forks,
+                        "max_stars": max(area_stars),
+                    }
+                )
         yaml_data["by_area"] = by_area
         save_yaml(out_path, yaml_data)
         logger.info(f"Written to {out_path}")
