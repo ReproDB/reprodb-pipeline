@@ -40,7 +40,7 @@ jobs:
           git diff --quiet schemas/ && echo "changed=false" >> "$GITHUB_OUTPUT" || echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Commit and push schema updates
-        if: steps.diff.outputs.changed == 'true'
+        if: steps.diff.outputs.changed == 'true' && github.repository_owner == 'ReproDB'
         working-directory: data-schemas
         run: |
           git config user.name "github-actions[bot]"

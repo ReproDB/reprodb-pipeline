@@ -160,7 +160,7 @@ jobs:
           retention-days: 7
 
       - name: Trigger statistics update
-        if: steps.check_changes.outputs.changed == 'true'
+        if: steps.check_changes.outputs.changed == 'true' && github.repository_owner == 'ReproDB'
         run: gh workflow run update-stats.yml
         env:
           GH_TOKEN: ${{ secrets.CROSS_REPO_TOKEN }}

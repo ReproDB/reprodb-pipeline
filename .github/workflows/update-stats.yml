@@ -261,6 +261,7 @@ jobs:
           "
       
       - name: Push to results archive
+        if: github.repository_owner == 'ReproDB'
         run: |
           cd results_archive
           git config user.name "GitHub Actions Bot"
@@ -308,6 +309,7 @@ jobs:
           fi
       
       - name: Commit and push to main branch
+        if: github.repository_owner == 'ReproDB'
         run: |
           cd website
           git config user.name "GitHub Actions Bot"
