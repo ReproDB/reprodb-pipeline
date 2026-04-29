@@ -1,0 +1,10 @@
+# GitHub repositories excluded from artifact repository statistics.
+#
+# These are large, general-purpose infrastructure projects that are NOT
+# research artifacts.  A paper may link into their tree, but the repo as a
+# whole was not created for (and should not be attributed to) a specific paper.
+#
+# Format: list of "owner/repo" strings (case-insensitive matching).
+
+- llvm/llvm-project
+- chromium/chromium

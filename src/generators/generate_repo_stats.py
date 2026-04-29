@@ -17,8 +17,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
+import yaml
+
 from ..models.repo_stats import RepoStatsEntry
 from ..scrapers.parse_results_md import get_ae_results
+from ..scrapers.repo_utils import _normalise_github_repo_url
 from ..utils.collect_artifact_stats import figshare_stats, github_stats, zenodo_stats
 from ..utils.conference import conf_area as _conf_area
 from ..utils.conference import parse_conf_year as extract_conference_name
@@ -26,6 +29,35 @@ from ..utils.io import load_json, load_validated_json, load_yaml, resolve_data_p
 from ..utils.test_artifact_repositories import check_artifact_exists
 
 logger = logging.getLogger(__name__)
+
+# ── Excluded repos ──────────────────────────────────────────────────────────
+_EXCLUDED_REPOS_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "excluded_repos.yaml"
+_excluded_repos: set[str] | None = None
+
+
+def _load_excluded_repos() -> set[str]:
+    """Return the set of owner/repo strings that should be excluded (lowercased)."""
+    global _excluded_repos  # noqa: PLW0603
+    if _excluded_repos is None:
+        if _EXCLUDED_REPOS_PATH.exists():
+            with _EXCLUDED_REPOS_PATH.open() as fh:
+                repos = yaml.safe_load(fh) or []
+            _excluded_repos = {r.lower() for r in repos}
+        else:
+            _excluded_repos = set()
+    return _excluded_repos
+
+
+def _is_excluded_repo(url: str) -> bool:
+    """Return True if the repo should be excluded from stats."""
+    normalized = _normalise_github_repo_url(url)
+    if not normalized:
+        return False
+    # Extract owner/repo from https://github.com/owner/repo
+    owner_repo = normalized.split("github.com/", 1)[-1].lower()
+    return owner_repo in _load_excluded_repos()
+
+
 
 
 def collect_stats_for_results(results, url_keys=None):
@@ -95,9 +127,15 @@ def collect_stats_for_results(results, url_keys=None):
     # Check which URLs exist
     results, _, _ = check_artifact_exists(results, url_keys)
 
-    # Build deduplicated list of (url, conf_name, year, title) tuples to fetch
+    # Build deduplicated list of (url, conf_name, year, title) tuples to fetch.
+    # For GitHub URLs, deduplicate at the owner/repo level so different
+    # branches/tags/paths within the same repo don't create separate stats
+    # entries. Non-GitHub URLs are deduplicated by their full URL.
     fetch_tasks = []
-    seen_urls: set[str] = set()
+    seen_urls: set[str] = set()  # normalized keys used for dedup
+    # Keep track of all (url, conf, year, title) per normalized GitHub repo
+    # so we can record each paper that uses a given repo.
+    github_repo_papers: dict[str, list[tuple[str, str, int, str]]] = defaultdict(list)
     for conf_year, artifacts in results.items():
         conf_name, year = extract_conference_name(conf_year)
         if year is None:
@@ -108,11 +146,27 @@ def collect_stats_for_results(results, url_keys=None):
                 exists_key = f"{url_key}_exists"
                 if not artifact.get(exists_key, False) or not url:
                     continue
-                url_normalized = url.rstrip("/")
-                if url_normalized in seen_urls:
+
+                # Normalize for deduplication
+                if "github.com/" in url:
+                    # Exclude repos in the excluded list
+                    if _is_excluded_repo(url):
+                        logger.debug(f"  Excluded repo: {url}")
+                        continue
+                    norm = _normalise_github_repo_url(url) or url.rstrip("/")
+                else:
+                    norm = url.rstrip("/")
+
+                title = artifact.get("title", "Unknown")
+                if norm in seen_urls:
+                    # Still track the paper for this repo
+                    if "github.com/" in url:
+                        github_repo_papers[norm].append((url, conf_name, year, title))
                     continue
-                seen_urls.add(url_normalized)
-                fetch_tasks.append((url, conf_name, year, artifact.get("title", "Unknown")))
+                seen_urls.add(norm)
+                fetch_tasks.append((url, conf_name, year, title))
+                if "github.com/" in url:
+                    github_repo_papers[norm].append((url, conf_name, year, title))
 
     max_workers = 8
     logger.info(f"  Collecting stats for {len(fetch_tasks)} unique URLs ({max_workers} workers)")
@@ -150,10 +204,27 @@ def collect_stats_for_results(results, url_keys=None):
                 }
                 entry.update(stats)
                 all_stats.append(entry)
+
+                # For GitHub repos used by multiple papers, emit additional
+                # entries so each paper is represented in per-conference stats.
+                if source == "github":
+                    norm = _normalise_github_repo_url(url)
+                    if norm and norm in github_repo_papers:
+                        for extra_url, extra_conf, extra_yr, extra_title in github_repo_papers[norm]:
+                            if extra_title == title and extra_conf == conf_name and extra_yr == year:
+                                continue  # skip the primary entry already added
+                            extra_entry = dict(entry)
+                            extra_entry["conference"] = extra_conf
+                            extra_entry["year"] = extra_yr
+                            extra_entry["title"] = extra_title
+                            extra_entry["url"] = extra_url
+                            all_stats.append(extra_entry)
+
                 # Collect any linked GitHub URLs discovered from Zenodo/Figshare
                 for gh_url in stats.get("linked_github_urls", []):
-                    if gh_url not in seen_urls:
-                        seen_urls.add(gh_url)
+                    gh_norm = _normalise_github_repo_url(gh_url) or gh_url
+                    if gh_norm not in seen_urls and not _is_excluded_repo(gh_url):
+                        seen_urls.add(gh_norm)
                         discovered_github.append((gh_url, conf_name, year, title))
             if i % 100 == 0 or i == len(fetch_tasks):
                 logger.info(f"  Progress: {i}/{len(fetch_tasks)} URLs fetched, {stats_collected} stats collected")
@@ -186,7 +257,13 @@ def collect_stats_for_results(results, url_keys=None):
 
 
 def aggregate_stats(all_stats):
-    """Aggregate per-conference and per-year statistics."""
+    """Aggregate per-conference and per-year statistics.
+
+    When the same GitHub repository (by ``name``, i.e. ``owner/repo``)
+    appears for multiple papers, each paper gets its own entry in the
+    detail list but the repo's stars/forks are counted only **once** in
+    aggregate totals (per-conference, per-year, and overall).
+    """
     # Per-conference aggregates
     by_conf = defaultdict(
         lambda: {
@@ -200,6 +277,7 @@ def aggregate_stats(all_stats):
             "total_downloads": 0,
             "years": defaultdict(lambda: {"github_repos": 0, "stars": 0, "forks": 0}),
             "all_github_entries": [],
+            "_seen_repos": set(),  # track repos already counted for this conf
         }
     )
 
@@ -213,6 +291,7 @@ def aggregate_stats(all_stats):
             "zenodo_repos": 0,
             "total_views": 0,
             "total_downloads": 0,
+            "_seen_repos": set(),
         }
     )
 
@@ -228,6 +307,7 @@ def aggregate_stats(all_stats):
         "avg_stars": 0,
         "avg_forks": 0,
     }
+    overall_seen_repos: set[str] = set()
 
     for s in all_stats:
         conf = s["conference"]
@@ -236,19 +316,16 @@ def aggregate_stats(all_stats):
         if s["source"] == "github":
             stars = s.get("github_stars", 0) or 0
             forks = s.get("github_forks", 0) or 0
+            repo_name = s.get("name", "") or ""
 
-            by_conf[conf]["github_repos"] += 1
-            by_conf[conf]["total_stars"] += stars
-            by_conf[conf]["total_forks"] += forks
-            by_conf[conf]["max_stars"] = max(by_conf[conf]["max_stars"], stars)
-            by_conf[conf]["max_forks"] = max(by_conf[conf]["max_forks"], forks)
-            by_conf[conf]["years"][year]["github_repos"] += 1
-            by_conf[conf]["years"][year]["stars"] += stars
-            by_conf[conf]["years"][year]["forks"] += forks
+            # Determine the normalized URL for display — prefer original (has tag info)
+            url = s.get("url", "")
+
+            # Always add to the detail list (one entry per paper×repo)
             by_conf[conf]["all_github_entries"].append(
                 {
                     "title": s.get("title", "Unknown"),
-                    "url": s.get("url", ""),
+                    "url": url,
                     "conference": conf,
                     "year": year,
                     "area": _conf_area(conf),
@@ -256,22 +333,44 @@ def aggregate_stats(all_stats):
                     "forks": forks,
                     "description": (s.get("description", "") or "")[:120],
                     "language": s.get("language", "") or "",
-                    "name": s.get("name", ""),
+                    "name": repo_name,
                     "pushed_at": s.get("pushed_at", ""),
                 }
             )
 
-            by_year[year]["github_repos"] += 1
-            by_year[year]["total_stars"] += stars
-            by_year[year]["total_forks"] += forks
-            by_year[year]["max_stars"] = max(by_year[year]["max_stars"], stars)
-            by_year[year]["max_forks"] = max(by_year[year]["max_forks"], forks)
+            # Only count stars/forks once per unique repo in aggregates
+            repo_key = repo_name.lower() if repo_name else url.rstrip("/")
 
-            overall["github_repos"] += 1
-            overall["total_stars"] += stars
-            overall["total_forks"] += forks
-            overall["max_stars"] = max(overall["max_stars"], stars)
-            overall["max_forks"] = max(overall["max_forks"], forks)
+            if repo_key not in by_conf[conf]["_seen_repos"]:
+                by_conf[conf]["_seen_repos"].add(repo_key)
+                by_conf[conf]["github_repos"] += 1
+                by_conf[conf]["total_stars"] += stars
+                by_conf[conf]["total_forks"] += forks
+                by_conf[conf]["max_stars"] = max(by_conf[conf]["max_stars"], stars)
+                by_conf[conf]["max_forks"] = max(by_conf[conf]["max_forks"], forks)
+
+            year_key = f"{repo_key}@{year}"
+            if year_key not in by_conf[conf].get("_seen_year_repos", set()):
+                by_conf[conf].setdefault("_seen_year_repos", set()).add(year_key)
+                by_conf[conf]["years"][year]["github_repos"] += 1
+                by_conf[conf]["years"][year]["stars"] += stars
+                by_conf[conf]["years"][year]["forks"] += forks
+
+            if repo_key not in by_year[year]["_seen_repos"]:
+                by_year[year]["_seen_repos"].add(repo_key)
+                by_year[year]["github_repos"] += 1
+                by_year[year]["total_stars"] += stars
+                by_year[year]["total_forks"] += forks
+                by_year[year]["max_stars"] = max(by_year[year]["max_stars"], stars)
+                by_year[year]["max_forks"] = max(by_year[year]["max_forks"], forks)
+
+            if repo_key not in overall_seen_repos:
+                overall_seen_repos.add(repo_key)
+                overall["github_repos"] += 1
+                overall["total_stars"] += stars
+                overall["total_forks"] += forks
+                overall["max_stars"] = max(overall["max_stars"], stars)
+                overall["max_forks"] = max(overall["max_forks"], forks)
 
         elif s["source"] == "zenodo":
             views = s.get("zenodo_views", 0) or 0
@@ -458,6 +557,11 @@ def main():
             validated = load_validated_json(detail_path, RepoStatsEntry, default=[])
             # Convert back to dicts for downstream merging with new stats
             existing_stats = [e.model_dump() if hasattr(e, "model_dump") else e for e in validated]
+            # Filter out excluded repos from historical data
+            pre_filter = len(existing_stats)
+            existing_stats = [s for s in existing_stats if not _is_excluded_repo(s.get("url", ""))]
+            if len(existing_stats) < pre_filter:
+                logger.info(f"Filtered {pre_filter - len(existing_stats)} excluded repos from existing stats")
             existing_urls = {s.get("url", "").rstrip("/") for s in existing_stats}
             logger.info(f"Loaded {len(existing_stats)} existing repo stats ({len(existing_urls)} unique URLs)")
 
