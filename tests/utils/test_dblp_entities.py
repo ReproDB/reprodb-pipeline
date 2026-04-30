@@ -14,7 +14,7 @@ from pathlib import Path
 import lxml.etree as ET
 import pytest
 
-from src.utils.dblp_extract import (
+from src.utils.apis.dblp_extract import (
     _HTML_ENTITY_MAP,
     _INTERNAL_DOCTYPE,
     _PatchedDTDStream,
@@ -358,7 +358,7 @@ class TestExtractDblpIntegration:
 
         # Point extract_dblp to use tmp_path for cache
         monkeypatch.setattr(
-            "src.utils.dblp_extract._extract_dir",
+            "src.utils.apis.dblp_extract._extract_dir",
             lambda repo_root=None: str(tmp_path / "cache"),
         )
 

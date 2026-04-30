@@ -41,7 +41,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    from src.utils.logging_config import setup_logging
+    from src.utils.io.logging_config import setup_logging
 
     setup_logging()
 

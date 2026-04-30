@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.generators.generate_paper_citations_doi import (
+from src.generators.citations.generate_paper_citations_doi import (
     _extract_paper_doi,
     _openalex_lookup,
     _openalex_title_search,
@@ -242,20 +242,20 @@ class TestGenerate:
         (assets / "artifacts.json").write_text(json.dumps(artifacts))
         return tmp_path
 
-    @patch("src.generators.generate_paper_citations_doi._s2_lookup", return_value=None)
+    @patch("src.generators.citations.generate_paper_citations_doi._s2_lookup", return_value=None)
     @patch(
-        "src.generators.generate_paper_citations_doi._openalex_title_search",
+        "src.generators.citations.generate_paper_citations_doi._openalex_title_search",
         return_value={"cited_by_count": 3, "openalex_id": "W3", "title": "Paper Y"},
     )
     @patch(
-        "src.generators.generate_paper_citations_doi._openalex_lookup",
+        "src.generators.citations.generate_paper_citations_doi._openalex_lookup",
         return_value={"cited_by_count": 10, "openalex_id": "W1", "title": "Paper X"},
     )
-    @patch("src.generators.generate_paper_citations_doi.time.sleep")
-    @patch("src.generators.generate_paper_citations_doi.read_cache", return_value=_extract_paper_doi)
+    @patch("src.generators.citations.generate_paper_citations_doi.time.sleep")
+    @patch("src.generators.citations.generate_paper_citations_doi.read_cache", return_value=_extract_paper_doi)
     def test_generate_writes_output(self, mock_cache, mock_sleep, mock_oa, mock_oa_title, mock_s2, data_dir):
         # Make cache always miss
-        from src.utils.cache import _MISSING
+        from src.utils.io.cache import _MISSING
 
         mock_cache.return_value = _MISSING
 

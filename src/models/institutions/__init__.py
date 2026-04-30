@@ -1,0 +1,1 @@
+"""Institution data models."""

@@ -1,6 +1,6 @@
 """Tests for generate_statistics — pure helper functions."""
 
-from src.generators.generate_statistics import (
+from src.generators.output.generate_statistics import (
     _build_artifact_entry,
     _collect_artifact_urls,
     count_badges,

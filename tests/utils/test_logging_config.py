@@ -4,7 +4,7 @@ import argparse
 import json
 import logging
 
-from src.utils.logging_config import LOG_LEVELS, JSONFormatter, add_log_level_arg, setup_logging
+from src.utils.io.logging_config import LOG_LEVELS, JSONFormatter, add_log_level_arg, setup_logging
 
 
 class TestLogLevels:

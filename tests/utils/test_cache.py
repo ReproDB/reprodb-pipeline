@@ -3,7 +3,7 @@
 import json
 import time
 
-from src.utils.cache import (
+from src.utils.io.cache import (
     _MISSING,
     cache_path,
     read_cache,

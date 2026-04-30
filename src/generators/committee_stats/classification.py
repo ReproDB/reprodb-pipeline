@@ -17,17 +17,17 @@ from pytrie import Trie
 from thefuzz import fuzz
 
 from src.scrapers.repo_utils import download_file
-from src.utils.affiliation import normalize_affiliation as _normalize_affiliation
-from src.utils.conference import (
+from src.utils.io.io import load_yaml
+from src.utils.normalization.affiliation import normalize_affiliation as _normalize_affiliation
+from src.utils.normalization.conference import (
     clean_name as _display_name,
 )
-from src.utils.conference import (
+from src.utils.normalization.conference import (
     normalize_name as _normalize_name,
 )
-from src.utils.conference import (
+from src.utils.normalization.conference import (
     parse_conf_year as _extract_conf_year,
 )
-from src.utils.io import load_yaml
 
 logger = logging.getLogger(__name__)
 

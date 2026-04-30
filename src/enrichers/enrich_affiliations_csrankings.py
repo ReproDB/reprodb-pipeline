@@ -19,8 +19,8 @@ from typing import Optional
 
 import requests
 
-from src.utils.cache import CACHE_ROOT, SECONDS_PER_DAY
-from src.utils.io import load_json, save_json
+from src.utils.io.cache import CACHE_ROOT, SECONDS_PER_DAY
+from src.utils.io.io import load_json, save_json
 
 logger = logging.getLogger(__name__)
 CSRANKINGS_URL = "https://raw.githubusercontent.com/emeryberger/CSrankings/gh-pages/csrankings.csv"
@@ -209,7 +209,11 @@ def enrich_affiliations(
     index_by_name = {}
     if data_dir:
         try:
-            from src.utils.author_index import load_author_index, save_author_index, update_author_affiliation
+            from src.utils.normalization.author_index import (
+                load_author_index,
+                save_author_index,
+                update_author_affiliation,
+            )
 
             _, index_by_name = load_author_index(data_dir)
             if index_by_name:
@@ -348,7 +352,7 @@ def main():
 
 
 if __name__ == "__main__":
-    from src.utils.logging_config import setup_logging
+    from src.utils.io.logging_config import setup_logging
 
     setup_logging()
 

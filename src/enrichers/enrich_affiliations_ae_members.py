@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from src.utils.io import load_json, save_json
+from src.utils.io.io import load_json, save_json
 
 from ..utils.conference import normalize_name
 
@@ -78,7 +78,7 @@ def enrich_affiliations(
     _update_index_fn = None
     _save_index_fn = None
     try:
-        from src.utils.author_index import load_author_index, save_author_index, update_author_affiliation
+        from src.utils.normalization.author_index import load_author_index, save_author_index, update_author_affiliation
 
         _, index_by_name = load_author_index(data_dir)
         _update_index_fn = update_author_affiliation
@@ -159,7 +159,7 @@ def main():
 
 
 if __name__ == "__main__":
-    from src.utils.logging_config import setup_logging
+    from src.utils.io.logging_config import setup_logging
 
     setup_logging()
 

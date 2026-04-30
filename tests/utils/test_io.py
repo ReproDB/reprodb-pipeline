@@ -4,7 +4,7 @@ import json
 
 import yaml
 
-from src.utils.io import load_json, load_yaml, save_json, save_yaml
+from src.utils.io.io import load_json, load_yaml, save_json, save_yaml
 
 
 class TestLoadJson:
@@ -91,7 +91,7 @@ class TestSaveValidatedJson:
     def test_validates_and_saves_list(self, tmp_path):
         from pydantic import BaseModel
 
-        from src.utils.io import save_validated_json
+        from src.utils.io.io import save_validated_json
 
         class Item(BaseModel):
             name: str
@@ -107,7 +107,7 @@ class TestSaveValidatedJson:
     def test_validates_and_saves_single(self, tmp_path):
         from pydantic import BaseModel
 
-        from src.utils.io import save_validated_json
+        from src.utils.io.io import save_validated_json
 
         class Item(BaseModel):
             name: str
@@ -121,7 +121,7 @@ class TestSaveValidatedJson:
         import pytest
         from pydantic import BaseModel, ValidationError
 
-        from src.utils.io import save_validated_json
+        from src.utils.io.io import save_validated_json
 
         class Item(BaseModel):
             name: str
@@ -134,7 +134,7 @@ class TestSaveValidatedJson:
     def test_compact_output(self, tmp_path):
         from pydantic import BaseModel
 
-        from src.utils.io import save_validated_json
+        from src.utils.io.io import save_validated_json
 
         class Item(BaseModel):
             x: int

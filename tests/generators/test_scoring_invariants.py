@@ -13,7 +13,7 @@ class TestScoringFormulas:
     """Test the exact scoring formulas used in combined rankings."""
 
     def test_artifact_score_additive(self):
-        from src.generators.generate_combined_rankings import _build_entry
+        from src.generators.rankings.generate_combined_rankings import _build_entry
 
         entry = _build_entry(
             name="Test",
@@ -34,7 +34,7 @@ class TestScoringFormulas:
         assert entry["artifact_score"] == 5 + 4 + 3  # = 12
 
     def test_ae_score(self):
-        from src.generators.generate_combined_rankings import _build_entry
+        from src.generators.rankings.generate_combined_rankings import _build_entry
 
         entry = _build_entry(
             name="Test",
@@ -55,7 +55,7 @@ class TestScoringFormulas:
         assert entry["ae_score"] == 3 * 3 + 1 * 2  # = 11
 
     def test_combined_score_is_sum(self):
-        from src.generators.generate_combined_rankings import _build_entry
+        from src.generators.rankings.generate_combined_rankings import _build_entry
 
         entry = _build_entry(
             name="Test",
@@ -75,7 +75,7 @@ class TestScoringFormulas:
         assert entry["combined_score"] == entry["artifact_score"] + entry["ae_score"]
 
     def test_ae_ratio_none_when_ae_score_zero(self):
-        from src.generators.generate_combined_rankings import _build_entry
+        from src.generators.rankings.generate_combined_rankings import _build_entry
 
         entry = _build_entry(
             name="Test",
@@ -95,7 +95,7 @@ class TestScoringFormulas:
         assert entry["ae_ratio"] is None
 
     def test_ae_ratio_computed(self):
-        from src.generators.generate_combined_rankings import _build_entry
+        from src.generators.rankings.generate_combined_rankings import _build_entry
 
         entry = _build_entry(
             name="Test",
@@ -116,7 +116,7 @@ class TestScoringFormulas:
         assert entry["ae_ratio"] == 2.0
 
     def test_repro_pct_zero_when_no_artifacts(self):
-        from src.generators.generate_combined_rankings import _build_entry
+        from src.generators.rankings.generate_combined_rankings import _build_entry
 
         entry = _build_entry(
             name="Test",
@@ -143,7 +143,7 @@ class TestInvariantViolations:
     """Hard invariant checks that must raise ValueError."""
 
     def test_reproducible_exceeds_artifacts_raises(self):
-        from src.generators.generate_combined_rankings import _build_entry
+        from src.generators.rankings.generate_combined_rankings import _build_entry
 
         with pytest.raises(ValueError, match="reproduced_badges.*>.*artifact_count"):
             _build_entry(
@@ -163,7 +163,7 @@ class TestInvariantViolations:
             )
 
     def test_functional_exceeds_artifacts_raises(self):
-        from src.generators.generate_combined_rankings import _build_entry
+        from src.generators.rankings.generate_combined_rankings import _build_entry
 
         with pytest.raises(ValueError, match="functional_badges.*>.*artifact_count"):
             _build_entry(
@@ -185,9 +185,9 @@ class TestInvariantViolations:
     def test_artifacts_exceeding_total_papers_clamped(self, caplog):
         import logging
 
-        caplog.set_level(logging.INFO, logger="src.generators.generate_combined_rankings")
+        caplog.set_level(logging.INFO, logger="src.generators.rankings.generate_combined_rankings")
         """artifacts > total_papers is soft-clamped (warning, not error)."""
-        from src.generators.generate_combined_rankings import _build_entry
+        from src.generators.rankings.generate_combined_rankings import _build_entry
 
         entry = _build_entry(
             name="Clamped",
@@ -216,7 +216,7 @@ class TestRankingContract:
     """Verify rankings are assigned with correct tie-breaking."""
 
     def test_ranks_monotonic_with_ties(self):
-        from src.generators.generate_combined_rankings import _build_entry
+        from src.generators.rankings.generate_combined_rankings import _build_entry
 
         entries = []
         for name, arts, ae in [("A", 3, 0), ("B", 3, 0), ("C", 1, 0)]:
@@ -260,20 +260,20 @@ class TestAffiliationNormalization:
     """Spot-check the regex-based normalization."""
 
     def test_ethz_variants(self):
-        from src.utils.affiliation import normalize_affiliation as _normalize_affiliation
+        from src.utils.normalization.affiliation import normalize_affiliation as _normalize_affiliation
 
         assert _normalize_affiliation("ETH Zürich") == _normalize_affiliation("ETHZ")
         assert "ETH" in _normalize_affiliation("ETH Zürich")
 
     def test_empty_string(self):
-        from src.utils.affiliation import normalize_affiliation as _normalize_affiliation
+        from src.utils.normalization.affiliation import normalize_affiliation as _normalize_affiliation
 
         assert _normalize_affiliation("") == ""
         assert _normalize_affiliation("   ") == ""
 
     def test_preserves_leading_underscore(self):
         """Underscores are stripped at display time, not during normalization."""
-        from src.utils.affiliation import normalize_affiliation as _normalize_affiliation
+        from src.utils.normalization.affiliation import normalize_affiliation as _normalize_affiliation
 
         result = _normalize_affiliation("_MIT")
         # Normalization preserves the underscore (display layer strips it)

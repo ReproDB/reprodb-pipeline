@@ -1,6 +1,6 @@
 """Tests for src.utils.http — shared HTTP session factory."""
 
-from src.utils.http import USER_AGENT, create_session
+from src.utils.apis.http import USER_AGENT, create_session
 
 
 class TestCreateSession:

@@ -1,6 +1,6 @@
 """Tests for src/utils/artifact_urls — URL classification and extraction."""
 
-from src.utils.artifact_urls import (
+from src.utils.normalization.artifact_urls import (
     extract_source,
     get_artifact_url,
     get_artifact_urls,

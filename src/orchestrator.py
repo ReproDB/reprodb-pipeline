@@ -32,7 +32,7 @@ from src.run_metadata import write_run_metadata
 from src.save_results import save_results
 from src.snapshot import check_monotonicity, create_summary, load_snapshot, save_snapshot
 from src.stages import STAGES, Stage, parallel_groups
-from src.utils.logging_config import setup_logging
+from src.utils.io.logging_config import setup_logging
 
 logger = logging.getLogger(__name__)
 
@@ -306,7 +306,7 @@ def run_pipeline(cfg: PipelineConfig, *, max_workers: int = 4, message: str = ""
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    from src.utils.logging_config import add_log_level_arg
+    from src.utils.io.logging_config import add_log_level_arg
 
     parser = argparse.ArgumentParser(
         description="Run the ReproDB data-generation pipeline.",

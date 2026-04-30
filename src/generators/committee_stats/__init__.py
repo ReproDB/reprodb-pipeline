@@ -18,8 +18,8 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from src.utils.conference import parse_conf_year as _extract_conf_year
-from src.utils.io import save_json, save_yaml
+from src.utils.io.io import save_json, save_yaml
+from src.utils.normalization.conference import parse_conf_year as _extract_conf_year
 
 from .chair_stats import compute_chair_stats
 from .charting import generate_committee_charts

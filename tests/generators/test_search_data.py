@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from src.generators.generate_search_data import _title_key, generate_search_data
+from src.generators.output.generate_search_data import _title_key, generate_search_data
 
 
 class TestTitleKey:

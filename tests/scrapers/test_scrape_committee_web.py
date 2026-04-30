@@ -8,15 +8,15 @@ import pytest
 from src.scrapers.scrape_committee_web import (
     scrape_ches_committee,
 )
-from src.utils.cache import _MISSING
+from src.utils.io.cache import _MISSING
 
 
 @pytest.fixture(autouse=True)
 def _no_disk_cache():
     """Prevent disk cache from interfering between tests."""
     with (
-        patch("src.utils.cache.read_cache", return_value=_MISSING),
-        patch("src.utils.cache.write_cache"),
+        patch("src.utils.io.cache.read_cache", return_value=_MISSING),
+        patch("src.utils.io.cache.write_cache"),
     ):
         yield
 

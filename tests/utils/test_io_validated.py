@@ -4,7 +4,7 @@ import json
 
 from pydantic import BaseModel, Field, model_validator
 
-from src.utils.io import load_validated_json, resolve_data_path
+from src.utils.io.io import load_validated_json, resolve_data_path
 
 # ── Test model ───────────────────────────────────────────────────────────────
 

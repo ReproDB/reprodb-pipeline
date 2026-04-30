@@ -1,6 +1,6 @@
 """Tests for src.utils.conference – area classification and name helpers."""
 
-from src.utils.conference import (
+from src.utils.normalization.conference import (
     ALL_CONFS,
     CONF_DISPLAY_NAMES,
     SECURITY_CONFS,

@@ -33,7 +33,7 @@ import requests
 import yaml
 from bs4 import BeautifulSoup
 
-from src.utils.cache import _MISSING
+from src.utils.io.cache import _MISSING
 
 from .repo_utils import (
     CACHE_DIR,
@@ -114,7 +114,7 @@ def _dblp_papers(dblp_key, year, session=None):
 
     Returns a list of dicts with keys: title, doi, authors, dblp_url.
     """
-    from ..utils.dblp_extract import papers_for_venue_year
+    from src.utils.apis.dblp_extract import papers_for_venue_year
 
     conf_upper = dblp_key.upper()
     extracted = papers_for_venue_year(conf_upper, year)
@@ -388,7 +388,7 @@ def main():
 
 
 if __name__ == "__main__":
-    from src.utils.logging_config import setup_logging
+    from src.utils.io.logging_config import setup_logging
 
     setup_logging()
     main()

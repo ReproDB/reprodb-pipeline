@@ -2,7 +2,7 @@
 
 import os
 
-from src.utils.author_index import (
+from src.utils.normalization.author_index import (
     build_name_to_id,
     load_author_index,
     save_author_index,

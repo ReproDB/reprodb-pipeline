@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.generators.generate_institution_rankings import aggregate_by_institution
+from src.generators.rankings.generate_institution_rankings import aggregate_by_institution
 
 
 def _person(**overrides):

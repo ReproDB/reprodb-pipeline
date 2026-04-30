@@ -13,8 +13,6 @@ from __future__ import annotations
 import logging
 from collections import Counter, defaultdict
 
-from src.utils.conference import parse_conf_year as _extract_conf_year
-
 logger = logging.getLogger(__name__)
 
 

@@ -7,8 +7,8 @@ current field names by ``@model_validator(mode="before")`` on models.
 import pytest
 from pydantic import ValidationError
 
-from src.models.ae_members import AEMember, AEMembership
-from src.models.repo_stats import RepoStatsEntry
+from src.models.aggregates.repo_stats import RepoStatsEntry
+from src.models.committees.ae_members import AEMember, AEMembership
 
 # ── RepoStatsEntry legacy migration ─────────────────────────────────────────
 

@@ -38,14 +38,14 @@ class Stage:
 STAGES: tuple[Stage, ...] = (
     Stage(
         name="dblp_extract",
-        module="src.utils.dblp_extract",
+        module="src.utils.apis.dblp_extract",
         description="Extract DBLP lookup data",
         optional=True,
         outputs=("data/dblp_lookup.json",),
     ),
     Stage(
         name="statistics",
-        module="src.generators.generate_statistics",
+        module="src.generators.output.generate_statistics",
         description="Generate statistics (sysartifacts + secartifacts + USENIX)",
         outputs=(
             "_data/summary.yml",
@@ -57,7 +57,7 @@ STAGES: tuple[Stage, ...] = (
     ),
     Stage(
         name="repo_stats",
-        module="src.generators.generate_repo_stats",
+        module="src.generators.repository.generate_repo_stats",
         description="Generate repository statistics (stars, forks, etc.)",
         depends_on=("statistics",),
         optional=True,
@@ -76,7 +76,7 @@ STAGES: tuple[Stage, ...] = (
     ),
     Stage(
         name="artifact_availability",
-        module="src.generators.generate_artifact_availability",
+        module="src.generators.repository.generate_artifact_availability",
         description="Check artifact URL liveness",
         depends_on=("statistics",),
         optional=True,
@@ -88,7 +88,7 @@ STAGES: tuple[Stage, ...] = (
     ),
     Stage(
         name="participation_stats",
-        module="src.generators.generate_participation_stats",
+        module="src.generators.repository.generate_participation_stats",
         description="Generate AE participation statistics (DBLP paper counts)",
         depends_on=("statistics", "dblp_extract"),
         optional=True,
@@ -96,7 +96,7 @@ STAGES: tuple[Stage, ...] = (
     ),
     Stage(
         name="author_stats",
-        module="src.generators.generate_author_stats",
+        module="src.generators.authors.generate_author_stats",
         description="Generate author statistics",
         depends_on=("statistics", "dblp_extract"),
         outputs=(
@@ -107,7 +107,7 @@ STAGES: tuple[Stage, ...] = (
     ),
     Stage(
         name="area_authors",
-        module="src.generators.generate_area_authors",
+        module="src.generators.authors.generate_area_authors",
         description="Generate per-area author data",
         depends_on=("author_stats", "statistics"),
         outputs=("assets/data/systems_authors.yml", "assets/data/security_authors.yml"),
@@ -122,7 +122,7 @@ STAGES: tuple[Stage, ...] = (
     ),
     Stage(
         name="combined_rankings",
-        module="src.generators.generate_combined_rankings",
+        module="src.generators.rankings.generate_combined_rankings",
         description="Generate combined author rankings",
         depends_on=("author_stats", "committee_stats"),
         outputs=(
@@ -133,7 +133,7 @@ STAGES: tuple[Stage, ...] = (
     ),
     Stage(
         name="institution_rankings",
-        module="src.generators.generate_institution_rankings",
+        module="src.generators.rankings.generate_institution_rankings",
         description="Generate institution rankings",
         depends_on=("combined_rankings",),
         outputs=(
@@ -144,35 +144,35 @@ STAGES: tuple[Stage, ...] = (
     ),
     Stage(
         name="author_profiles",
-        module="src.generators.generate_author_profiles",
+        module="src.generators.authors.generate_author_profiles",
         description="Generate author profile pages",
         depends_on=("author_stats", "combined_rankings"),
         outputs=("author/",),
     ),
     Stage(
         name="search_data",
-        module="src.generators.generate_search_data",
+        module="src.generators.output.generate_search_data",
         description="Generate search index",
         depends_on=("statistics", "author_stats"),
         outputs=("assets/data/search_data.json",),
     ),
     Stage(
         name="ranking_history",
-        module="src.generators.generate_ranking_history",
+        module="src.generators.rankings.generate_ranking_history",
         description="Update ranking history snapshots",
         depends_on=("combined_rankings", "institution_rankings"),
         outputs=("assets/data/ranking_history.json",),
     ),
     Stage(
         name="visualizations",
-        module="src.generators.generate_visualizations",
+        module="src.generators.output.generate_visualizations",
         description="Generate SVG charts",
         depends_on=("statistics", "author_stats", "committee_stats"),
         outputs=("assets/charts/",),
     ),
     Stage(
         name="paper_citations_doi",
-        module="src.generators.generate_paper_citations_doi",
+        module="src.generators.citations.generate_paper_citations_doi",
         description="Collect paper citation counts via OpenAlex/Semantic Scholar",
         depends_on=("statistics",),
         optional=True,
@@ -180,7 +180,7 @@ STAGES: tuple[Stage, ...] = (
     ),
     Stage(
         name="baseline_citations",
-        module="src.generators.generate_baseline_citations",
+        module="src.generators.citations.generate_baseline_citations",
         description="Collect citation counts for non-AE papers (baseline comparison)",
         depends_on=("statistics", "dblp_extract"),
         optional=True,

@@ -3,7 +3,7 @@
 import json
 from unittest.mock import patch
 
-from src.generators.generate_ranking_history import (
+from src.generators.rankings.generate_ranking_history import (
     _has_snapshot,
     _snapshot_date,
     _update_history,
@@ -90,7 +90,7 @@ class TestGenerateRankingHistory:
 
         return tmp_path
 
-    @patch("src.generators.generate_ranking_history._snapshot_date", return_value="2025-06")
+    @patch("src.generators.rankings.generate_ranking_history._snapshot_date", return_value="2025-06")
     def test_creates_snapshots(self, _mock_date, tmp_path):
         data_dir = self._setup_data(tmp_path)
         generate_ranking_history(str(data_dir))
@@ -104,7 +104,7 @@ class TestGenerateRankingHistory:
         assert len(inst_hist) == 1
         assert "MIT" in inst_hist[0]["entries"]
 
-    @patch("src.generators.generate_ranking_history._snapshot_date", return_value="2025-06")
+    @patch("src.generators.rankings.generate_ranking_history._snapshot_date", return_value="2025-06")
     def test_skips_existing_without_force(self, _mock_date, tmp_path):
         data_dir = self._setup_data(tmp_path)
 
@@ -119,7 +119,7 @@ class TestGenerateRankingHistory:
         author_hist = json.loads((assets / "ranking_history.json").read_text())
         assert "Old" in author_hist[0]["entries"]  # Not replaced
 
-    @patch("src.generators.generate_ranking_history._snapshot_date", return_value="2025-06")
+    @patch("src.generators.rankings.generate_ranking_history._snapshot_date", return_value="2025-06")
     def test_force_overwrites(self, _mock_date, tmp_path):
         data_dir = self._setup_data(tmp_path)
 

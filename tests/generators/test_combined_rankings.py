@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.generators.generate_combined_rankings import (
+from src.generators.rankings.generate_combined_rankings import (
     _build_entry,
     _merge_rankings,
     _normalize_name,

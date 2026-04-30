@@ -26,7 +26,7 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from bs4 import BeautifulSoup
 
-from src.utils.http import create_session
+from src.utils.apis.http import create_session
 
 logger = logging.getLogger(__name__)
 
@@ -176,7 +176,7 @@ def main():
 
 
 if __name__ == "__main__":
-    from src.utils.logging_config import setup_logging
+    from src.utils.io.logging_config import setup_logging
 
     setup_logging()
     main()

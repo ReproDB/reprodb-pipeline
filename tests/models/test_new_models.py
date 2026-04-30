@@ -7,16 +7,19 @@ rejection) and basic round-trip serialisation for every new model.
 import pytest
 from pydantic import ValidationError
 
-from src.models.ae_members import AEMember
-from src.models.artifact_availability import (
+from src.models.aggregates.ranking_history import RankingHistoryEntry, RankingSnapshot
+from src.models.aggregates.repo_stats_yearly import RepoStatsYearly, YearlyRepoMetrics
+from src.models.aggregates.top_repos import TopRepo
+from src.models.artifacts.artifact_availability import (
     ArtifactAvailability,
     AvailabilityRecord,
     AvailabilitySummary,
     PlatformStats,
 )
-from src.models.artifact_citations import ArtifactCitation
-from src.models.author_profiles import AuthorProfile
-from src.models.committee_stats import (
+from src.models.artifacts.artifact_citations import ArtifactCitation
+from src.models.authors.author_profiles import AuthorProfile
+from src.models.committees.ae_members import AEMember
+from src.models.committees.committee_stats import (
     CommitteeSize,
     CommitteeStats,
     CommitteeSummary,
@@ -24,17 +27,14 @@ from src.models.committee_stats import (
     NameCount,
     SplitCounts,
 )
-from src.models.institution_ranking_history import (
-    InstitutionRankingSnapshot,
-)
-from src.models.participation_stats import (
+from src.models.committees.participation_stats import (
     AreaTrend,
     ConferenceYearStats,
     ParticipationStats,
 )
-from src.models.ranking_history import RankingHistoryEntry, RankingSnapshot
-from src.models.repo_stats_yearly import RepoStatsYearly, YearlyRepoMetrics
-from src.models.top_repos import TopRepo
+from src.models.institutions.institution_ranking_history import (
+    InstitutionRankingSnapshot,
+)
 
 # ── AEMember ───────────────────────────────────────────────────────
 

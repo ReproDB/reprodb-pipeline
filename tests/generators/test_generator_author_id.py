@@ -33,7 +33,7 @@ def make_index(tmp_website, names_ids):
 
 class TestAuthorProfilesInjection:
     def test_author_id_injected(self, tmp_website, sample_authors, sample_index):
-        from src.generators.generate_author_profiles import generate_profiles
+        from src.generators.authors.generate_author_profiles import generate_profiles
 
         # Write required input files
         write_json(str(tmp_website / "assets" / "data" / "authors.json"), sample_authors)
@@ -55,7 +55,7 @@ class TestAuthorProfilesInjection:
 
     def test_no_index_no_crash(self, tmp_website, sample_authors):
         """Works cleanly even when author_index.json doesn't exist."""
-        from src.generators.generate_author_profiles import generate_profiles
+        from src.generators.authors.generate_author_profiles import generate_profiles
 
         write_json(str(tmp_website / "assets" / "data" / "authors.json"), sample_authors)
         write_json(str(tmp_website / "assets" / "data" / "ae_members.json"), [])

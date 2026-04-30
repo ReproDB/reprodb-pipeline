@@ -17,15 +17,15 @@ from src.scrapers.scrape_committee_web import (
     _load_local_committees,
     get_alternative_committees,
 )
-from src.utils.affiliation import normalize_affiliation as _normalize_affiliation
-from src.utils.conference import (
+from src.utils.normalization.affiliation import normalize_affiliation as _normalize_affiliation
+from src.utils.normalization.conference import (
     PLACEHOLDER_NAMES,
     clean_member_name,
 )
-from src.utils.conference import (
+from src.utils.normalization.conference import (
     clean_name as _display_name,
 )
-from src.utils.conference import (
+from src.utils.normalization.conference import (
     conf_area as _conf_area,
 )
 

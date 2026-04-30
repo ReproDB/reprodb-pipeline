@@ -5,7 +5,7 @@ we focus on the pure helpers ``_detect_platform``, ``generate_availability``
 (with stubbed liveness checks) and ``build_summary``.
 """
 
-from src.generators import generate_artifact_availability as gaa
+from src.generators.repository import generate_artifact_availability as gaa
 
 
 class TestDetectPlatform:

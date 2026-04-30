@@ -7,19 +7,19 @@ rejection) and basic round-trip serialisation for every model.
 import pytest
 from pydantic import ValidationError
 
-from src.models.artifacts_by_conference import ConferenceEntry, YearBreakdown
-from src.models.artifacts_by_year import ArtifactsByYear
-from src.models.author_index import AffiliationHistoryEntry, AuthorIndexEntry, ExternalIds
-from src.models.author_stats import ArtifactPaper, AuthorStats, PlainPaper
-from src.models.institution_rankings import InstitutionRanking, TopAuthor
-from src.models.paper_index import Paper
-from src.models.repo_stats import (
+from src.models.aggregates.artifacts_by_conference import ConferenceEntry, YearBreakdown
+from src.models.aggregates.artifacts_by_year import ArtifactsByYear
+from src.models.aggregates.repo_stats import (
     OverallStats,
     RepoStatsEntry,
     RepoStatsSummary,
 )
-from src.models.search_data import SearchEntry
-from src.models.summary import Summary
+from src.models.aggregates.summary import Summary
+from src.models.artifacts.paper_index import Paper
+from src.models.artifacts.search_data import SearchEntry
+from src.models.authors.author_index import AffiliationHistoryEntry, AuthorIndexEntry, ExternalIds
+from src.models.authors.author_stats import ArtifactPaper, AuthorStats, PlainPaper
+from src.models.institutions.institution_rankings import InstitutionRanking, TopAuthor
 
 # ── YearBreakdown & ConferenceEntry ────────────────────────────────
 

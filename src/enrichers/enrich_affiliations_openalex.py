@@ -32,12 +32,12 @@ from urllib.parse import quote
 
 import requests
 
-from src.utils.cache import _MISSING, CACHE_ROOT, SECONDS_PER_DAY
-from src.utils.cache import read_cache as _read_cache
-from src.utils.cache import write_cache as _write_cache
-from src.utils.conference import normalize_name, normalize_title
-from src.utils.http import create_session
-from src.utils.io import load_json
+from src.utils.apis.http import create_session
+from src.utils.io.cache import _MISSING, CACHE_ROOT, SECONDS_PER_DAY
+from src.utils.io.cache import read_cache as _read_cache
+from src.utils.io.cache import write_cache as _write_cache
+from src.utils.io.io import load_json
+from src.utils.normalization.conference import normalize_name, normalize_title
 
 logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
@@ -514,7 +514,11 @@ def enrich(
     _save_index_fn = None
     if data_dir:
         try:
-            from src.utils.author_index import load_author_index, save_author_index, update_author_affiliation
+            from src.utils.normalization.author_index import (
+                load_author_index,
+                save_author_index,
+                update_author_affiliation,
+            )
 
             _, index_by_name = load_author_index(data_dir)
             _update_index_fn = update_author_affiliation
@@ -622,7 +626,7 @@ def main():
 
 
 if __name__ == "__main__":
-    from src.utils.logging_config import setup_logging
+    from src.utils.io.logging_config import setup_logging
 
     setup_logging()
 

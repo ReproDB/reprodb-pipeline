@@ -1,6 +1,6 @@
 """Tests for src.generators.generate_statistics – badge counting logic."""
 
-from src.generators.generate_statistics import count_badges
+from src.generators.output.generate_statistics import count_badges
 
 
 class TestCountBadges:

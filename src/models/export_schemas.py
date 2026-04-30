@@ -22,35 +22,35 @@ logger = logging.getLogger(__name__)
 # list_wrapper == True means the top-level schema is ``type: array`` wrapping items.
 SCHEMA_REGISTRY: list[tuple[str, bool, str, str]] = [
     # (filename, is_array, module, class_name)
-    ("ae_chairs.schema.json", True, "src.models.ae_chairs", "AEChair"),
-    ("ae_members.schema.json", True, "src.models.ae_members", "AEMember"),
-    ("artifact_availability.schema.json", False, "src.models.artifact_availability", "ArtifactAvailability"),
-    ("artifact_citations.schema.json", True, "src.models.artifact_citations", "ArtifactCitation"),
-    ("artifacts.schema.json", True, "src.models.artifacts", "Artifact"),
-    ("artifacts_by_conference.schema.json", True, "src.models.artifacts_by_conference", "ConferenceEntry"),
-    ("artifacts_by_year.schema.json", True, "src.models.artifacts_by_year", "ArtifactsByYear"),
-    ("author_index.schema.json", True, "src.models.author_index", "AuthorIndexEntry"),
-    ("author_profiles.schema.json", True, "src.models.author_profiles", "AuthorProfile"),
-    ("author_stats.schema.json", True, "src.models.author_stats", "AuthorStats"),
-    ("combined_rankings.schema.json", True, "src.models.combined_rankings", "AuthorRanking"),
-    ("committee_stats.schema.json", False, "src.models.committee_stats", "CommitteeStats"),
-    ("chair_stats.schema.json", False, "src.models.chair_stats", "ChairStats"),
+    ("ae_chairs.schema.json", True, "src.models.committees.ae_chairs", "AEChair"),
+    ("ae_members.schema.json", True, "src.models.committees.ae_members", "AEMember"),
+    ("artifact_availability.schema.json", False, "src.models.artifacts.artifact_availability", "ArtifactAvailability"),
+    ("artifact_citations.schema.json", True, "src.models.artifacts.artifact_citations", "ArtifactCitation"),
+    ("artifacts.schema.json", True, "src.models.artifacts.artifacts", "Artifact"),
+    ("artifacts_by_conference.schema.json", True, "src.models.aggregates.artifacts_by_conference", "ConferenceEntry"),
+    ("artifacts_by_year.schema.json", True, "src.models.aggregates.artifacts_by_year", "ArtifactsByYear"),
+    ("author_index.schema.json", True, "src.models.authors.author_index", "AuthorIndexEntry"),
+    ("author_profiles.schema.json", True, "src.models.authors.author_profiles", "AuthorProfile"),
+    ("author_stats.schema.json", True, "src.models.authors.author_stats", "AuthorStats"),
+    ("combined_rankings.schema.json", True, "src.models.authors.combined_rankings", "AuthorRanking"),
+    ("committee_stats.schema.json", False, "src.models.committees.committee_stats", "CommitteeStats"),
+    ("chair_stats.schema.json", False, "src.models.committees.chair_stats", "ChairStats"),
     (
         "institution_ranking_history.schema.json",
         True,
-        "src.models.institution_ranking_history",
+        "src.models.institutions.institution_ranking_history",
         "InstitutionRankingHistoryEntry",
     ),
-    ("institution_rankings.schema.json", True, "src.models.institution_rankings", "InstitutionRanking"),
-    ("paper_index.schema.json", True, "src.models.paper_index", "Paper"),
-    ("participation_stats.schema.json", False, "src.models.participation_stats", "ParticipationStats"),
-    ("ranking_history.schema.json", True, "src.models.ranking_history", "RankingHistoryEntry"),
-    ("repo_stats.schema.json", True, "src.models.repo_stats", "RepoStatsEntry"),
-    ("repo_stats_summary.schema.json", False, "src.models.repo_stats", "RepoStatsSummary"),
-    ("repo_stats_yearly.schema.json", True, "src.models.repo_stats_yearly", "RepoStatsYearly"),
-    ("search_data.schema.json", True, "src.models.search_data", "SearchEntry"),
-    ("summary.schema.json", False, "src.models.summary", "Summary"),
-    ("top_repos.schema.json", True, "src.models.top_repos", "TopRepo"),
+    ("institution_rankings.schema.json", True, "src.models.institutions.institution_rankings", "InstitutionRanking"),
+    ("paper_index.schema.json", True, "src.models.artifacts.paper_index", "Paper"),
+    ("participation_stats.schema.json", False, "src.models.committees.participation_stats", "ParticipationStats"),
+    ("ranking_history.schema.json", True, "src.models.aggregates.ranking_history", "RankingHistoryEntry"),
+    ("repo_stats.schema.json", True, "src.models.aggregates.repo_stats", "RepoStatsEntry"),
+    ("repo_stats_summary.schema.json", False, "src.models.aggregates.repo_stats", "RepoStatsSummary"),
+    ("repo_stats_yearly.schema.json", True, "src.models.aggregates.repo_stats_yearly", "RepoStatsYearly"),
+    ("search_data.schema.json", True, "src.models.artifacts.search_data", "SearchEntry"),
+    ("summary.schema.json", False, "src.models.aggregates.summary", "Summary"),
+    ("top_repos.schema.json", True, "src.models.aggregates.top_repos", "TopRepo"),
 ]
 
 BASE_URL = "https://reprodb.github.io/data-schemas/schemas"
@@ -201,7 +201,7 @@ def main():
 
 
 if __name__ == "__main__":
-    from src.utils.logging_config import setup_logging
+    from src.utils.io.logging_config import setup_logging
 
     setup_logging()
 

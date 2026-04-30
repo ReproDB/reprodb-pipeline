@@ -9,23 +9,23 @@ from urllib.parse import urlparse
 import requests
 import yaml
 
-from src.utils.cache import (
+from src.utils.io.cache import (
     _MISSING,
     CACHE_ROOT,
 )
-from src.utils.cache import (
+from src.utils.io.cache import (
     SECONDS_PER_DAY as _SECONDS_PER_DAY,
 )
-from src.utils.cache import (
+from src.utils.io.cache import (
     read_cache as _read_cache,
 )
-from src.utils.cache import (
+from src.utils.io.cache import (
     read_cache_entry as _read_cache_entry,
 )
-from src.utils.cache import (
+from src.utils.io.cache import (
     refresh_cache_ts as _refresh_cache_ts,
 )
-from src.utils.cache import (
+from src.utils.io.cache import (
     write_cache as _write_cache,
 )
 
@@ -67,7 +67,7 @@ def _github_headers():
 
 def _session_with_retries(retries: int = 3, backoff: float = 1.0, timeout: int = 30) -> requests.Session:
     """Create a requests.Session with automatic retries and timeouts."""
-    from src.utils.http import create_session
+    from src.utils.apis.http import create_session
 
     return create_session(retries=retries, backoff=backoff, timeout=timeout)
 

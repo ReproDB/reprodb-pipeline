@@ -1,0 +1,1 @@
+"""Aggregate statistics data models."""

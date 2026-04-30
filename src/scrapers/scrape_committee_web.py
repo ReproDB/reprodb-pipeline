@@ -20,7 +20,7 @@ import requests
 import yaml
 from bs4 import BeautifulSoup
 
-from src.utils.cache import CACHE_ROOT, SECONDS_PER_DAY
+from src.utils.io.cache import CACHE_ROOT, SECONDS_PER_DAY
 
 # ── USENIX conference URL patterns ──────────────────────────────────────────
 
@@ -53,7 +53,7 @@ BASE_USENIX = "https://www.usenix.org"
 
 def _get_session():
     """Return a requests session with a polite user-agent."""
-    from src.utils.http import create_session
+    from src.utils.apis.http import create_session
 
     return create_session()
 
@@ -87,7 +87,7 @@ def _cached_fetch(url, session=None, cache_only=False, timeout=30):
     timeout : int
         HTTP timeout in seconds.
     """
-    from src.utils.cache import _MISSING, read_cache, write_cache
+    from src.utils.io.cache import _MISSING, read_cache, write_cache
 
     cached = read_cache(_SCRAPE_CACHE_DIR, url, ttl=_SCRAPE_CACHE_TTL, namespace="committee_scrape")
     if cached is not _MISSING:
@@ -1083,7 +1083,7 @@ def get_all_usenix_committees(conf_regex=None):
 # ── CLI for testing ──────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    from src.utils.logging_config import setup_logging
+    from src.utils.io.logging_config import setup_logging
 
     setup_logging()
 

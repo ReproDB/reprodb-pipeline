@@ -8,7 +8,7 @@ several JSON inputs from a website-shaped directory and writes
 import json
 from pathlib import Path
 
-from src.generators.generate_author_profiles import generate_profiles
+from src.generators.authors.generate_author_profiles import generate_profiles
 
 
 def _write(path: Path, data) -> None:

@@ -35,7 +35,7 @@ import requests
 import yaml
 from bs4 import BeautifulSoup
 
-from src.utils.cache import _MISSING
+from src.utils.io.cache import _MISSING
 
 from .repo_utils import CACHE_DIR, CACHE_TTL, _read_cache, _write_cache
 
@@ -52,7 +52,7 @@ def get_session(session=None):
     """Return a requests.Session, optionally reusing an existing one."""
     if session is not None:
         return session
-    from src.utils.http import create_session
+    from src.utils.apis.http import create_session
 
     return create_session()
 
@@ -472,7 +472,7 @@ def main():
 
 
 if __name__ == "__main__":
-    from src.utils.logging_config import setup_logging
+    from src.utils.io.logging_config import setup_logging
 
     setup_logging()
 

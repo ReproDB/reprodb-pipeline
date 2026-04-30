@@ -2,7 +2,7 @@
 
 import json
 
-from src.generators.generate_paper_index import (
+from src.generators.output.generate_paper_index import (
     build_paper_index,
     load_existing_index,
     normalize_title,

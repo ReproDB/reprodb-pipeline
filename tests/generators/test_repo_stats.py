@@ -5,7 +5,7 @@ pure aggregation function ``aggregate_stats`` which takes pre-collected stat
 dicts and rolls them up into the final structure.
 """
 
-from src.generators.generate_repo_stats import (
+from src.generators.repository.generate_repo_stats import (
     _is_excluded_repo,
     aggregate_stats,
 )
