@@ -33,6 +33,16 @@ class AEMember(BaseModel):
     affiliation: str = Field(
         description="Current institutional affiliation, e.g. 'EPFL', 'MIT'.", examples=["ETH Zurich"]
     )
+    country: str | None = Field(
+        default=None,
+        description="Country of the institution, e.g. 'Switzerland', 'United States'. Null if unresolved.",
+        examples=["Switzerland"],
+    )
+    continent: str | None = Field(
+        default=None,
+        description="Continent of the institution, e.g. 'Europe', 'North America'. Null if unresolved.",
+        examples=["Europe"],
+    )
     total_memberships: int = Field(
         ge=0,
         description="Total number of AE committee memberships across all conferences and years.",

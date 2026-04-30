@@ -93,7 +93,27 @@ class ChairStatsSummary(BaseModel):
     pipeline_promoted_pct: float = Field(ge=0, description="Percentage promoted from member.", examples=[37.8])
     pipeline_avg_years: float = Field(ge=0, description="Avg years from member to chair.", examples=[2.7])
     avg_chairs_per_edition: float = Field(ge=0, description="Average co-chairs per conference edition.", examples=[2.2])
+    total_countries: int = Field(ge=0, description="Number of distinct countries represented by chairs.", examples=[15])
+    total_continents: int = Field(ge=0, description="Number of distinct continents represented by chairs.", examples=[4])
     year_trends: list[YearTrend] = Field(description="Year-over-year chair entry and activity.")
+
+    model_config = {"extra": "forbid"}
+
+
+class GeographicStats(BaseModel):
+    """Geographic diversity statistics for chairs."""
+
+    total_countries: int = Field(ge=0, description="Number of distinct countries.", examples=[15])
+    total_continents: int = Field(ge=0, description="Number of distinct continents.", examples=[4])
+    by_country: dict[str, int] = Field(
+        description="Country → number of chairs from that country.",
+        examples=[{"United States": 30, "Germany": 8}],
+    )
+    by_continent: dict[str, int] = Field(
+        description="Continent → number of chairs from that continent.",
+        examples=[{"North America": 35, "Europe": 25}],
+    )
+    unclassified_count: int = Field(ge=0, description="Chairs without a resolved country.", examples=[3])
 
     model_config = {"extra": "forbid"}
 
@@ -106,5 +126,6 @@ class ChairStats(BaseModel):
     pipeline: PipelineStats = Field(description="Member-to-chair promotion analytics.")
     retention: RetentionStats = Field(description="Retention and repeat-chair data.")
     cross_conference: list[CrossConferenceChair] = Field(description="Chairs serving multiple series.")
+    geographic: GeographicStats = Field(description="Geographic diversity of chairs.")
 
     model_config = {"extra": "forbid"}

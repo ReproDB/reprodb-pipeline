@@ -26,6 +26,16 @@ class AEChair(BaseModel):
         description="Current institutional affiliation, e.g. 'EPFL', 'MIT'.",
         examples=["ETH Zurich"],
     )
+    country: str | None = Field(
+        default=None,
+        description="Country of the institution, e.g. 'Switzerland'. Null if unresolved.",
+        examples=["Switzerland"],
+    )
+    continent: str | None = Field(
+        default=None,
+        description="Continent of the institution, e.g. 'Europe'. Null if unresolved.",
+        examples=["Europe"],
+    )
     total_memberships: int = Field(
         ge=0,
         description="Total AE roles (chair + member) across all conferences and years.",
