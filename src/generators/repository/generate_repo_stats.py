@@ -24,10 +24,10 @@ from src.models.aggregates.repo_stats import RepoStatsEntry
 from src.scrapers.parse_results_md import get_ae_results
 from src.scrapers.repo_utils import _normalise_github_repo_url
 from src.utils.collection.collect_artifact_stats import figshare_stats, github_stats, zenodo_stats
-from src.utils.collection.test_artifact_repositories import check_artifact_exists
-from src.utils.io.io import load_json, load_validated_json, load_yaml, resolve_data_path, save_json, save_yaml
 from src.utils.normalization.conference import conf_area as _conf_area
 from src.utils.normalization.conference import parse_conf_year as extract_conference_name
+from src.utils.io.io import load_json, load_validated_json, load_yaml, resolve_data_path, save_json, save_yaml
+from src.utils.collection.test_artifact_repositories import check_artifact_exists
 
 logger = logging.getLogger(__name__)
 

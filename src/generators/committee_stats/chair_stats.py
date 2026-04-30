@@ -81,9 +81,7 @@ def compute_chair_stats(
         "pipeline_promoted": pipeline["promoted_count"],
         "pipeline_promoted_pct": pipeline["promoted_pct"],
         "pipeline_avg_years": pipeline["avg_years_to_chair"],
-        "avg_chairs_per_edition": round(
-            sum(t["chair_count"] for t in chair_teams) / max(len(chair_teams), 1), 1
-        ),
+        "avg_chairs_per_edition": round(sum(t["chair_count"] for t in chair_teams) / max(len(chair_teams), 1), 1),
         "year_trends": year_trends,
     }
 
@@ -129,9 +127,7 @@ def _extract_chairs(members: list) -> list:
 
         # Was this person a member before becoming a chair?
         promoted_from_member = (
-            first_member_year is not None
-            and first_chair_year is not None
-            and first_member_year < first_chair_year
+            first_member_year is not None and first_chair_year is not None and first_member_year < first_chair_year
         )
         years_to_chair = (first_chair_year - first_member_year) if promoted_from_member else None
 
@@ -173,12 +169,14 @@ def _compute_chair_teams(chairs: list) -> list:
 
     result = []
     for (conf, year), names in sorted(teams.items()):
-        result.append({
-            "conference": conf,
-            "year": year,
-            "chair_count": len(names),
-            "chairs": sorted(names),
-        })
+        result.append(
+            {
+                "conference": conf,
+                "year": year,
+                "chair_count": len(names),
+                "chairs": sorted(names),
+            }
+        )
     return result
 
 
@@ -195,12 +193,14 @@ def _compute_pipeline(chairs: list) -> dict:
     promotions = []
     for c in chairs:
         if c.get("promoted_from_member") and c.get("years_to_chair") is not None:
-            promotions.append({
-                "name": c["display_name"],
-                "first_member_year": c["first_year"],
-                "first_chair_year": c["first_chair_year"],
-                "gap": c["years_to_chair"],
-            })
+            promotions.append(
+                {
+                    "name": c["display_name"],
+                    "first_member_year": c["first_year"],
+                    "first_chair_year": c["first_chair_year"],
+                    "gap": c["years_to_chair"],
+                }
+            )
 
     gaps = [p["gap"] for p in promotions]
     return {
@@ -229,13 +229,15 @@ def _compute_retention(chairs: list) -> dict:
         first = c.get("first_year")
         last = c.get("last_year")
         if first and last:
-            tenure_spans.append({
-                "name": c["display_name"],
-                "span_years": last - first + 1,
-                "chair_count": c["chair_count"],
-                "first_year": first,
-                "last_year": last,
-            })
+            tenure_spans.append(
+                {
+                    "name": c["display_name"],
+                    "span_years": last - first + 1,
+                    "chair_count": c["chair_count"],
+                    "first_year": first,
+                    "last_year": last,
+                }
+            )
 
     return {
         "repeat_count": len(repeat),
@@ -252,12 +254,14 @@ def _compute_cross_conference(chairs: list) -> list:
     cross = []
     for c in chairs:
         if len(c.get("chaired_series", [])) > 1:
-            cross.append({
-                "name": c["display_name"],
-                "affiliation": c.get("affiliation", ""),
-                "series": c["chaired_series"],
-                "chair_count": c["chair_count"],
-            })
+            cross.append(
+                {
+                    "name": c["display_name"],
+                    "affiliation": c.get("affiliation", ""),
+                    "series": c["chaired_series"],
+                    "chair_count": c["chair_count"],
+                }
+            )
     return sorted(cross, key=lambda x: (-x["chair_count"], x["name"]))
 
 

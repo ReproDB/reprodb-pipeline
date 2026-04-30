@@ -36,7 +36,9 @@ class PipelineStats(BaseModel):
 
     promoted_count: int = Field(ge=0, description="Number of chairs who served as members first.", examples=[31])
     promoted_pct: float = Field(ge=0, description="Percentage of chairs promoted from member.", examples=[37.8])
-    avg_years_to_chair: float = Field(ge=0, description="Average years from first member to first chair.", examples=[2.7])
+    avg_years_to_chair: float = Field(
+        ge=0, description="Average years from first member to first chair.", examples=[2.7]
+    )
     min_years: int = Field(ge=0, description="Minimum years to promotion.", examples=[1])
     max_years: int = Field(ge=0, description="Maximum years to promotion.", examples=[9])
     promotions: list[PipelinePromotion] = Field(description="Individual promotion records.")

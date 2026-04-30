@@ -229,13 +229,16 @@ def generate_committee_data(conf_regex: str, output_dir):
         logger.info(f"  Wrote {chairs_sec_path} ({len(chair_data['chairs_security'])} chairs)")
 
         chair_stats_path = output_dir / "assets/data/chair_stats.json"
-        save_json(chair_stats_path, {
-            "summary": chair_data["summary"],
-            "chair_teams": chair_data["chair_teams"],
-            "pipeline": chair_data["pipeline"],
-            "retention": chair_data["retention"],
-            "cross_conference": chair_data["cross_conference"],
-        })
+        save_json(
+            chair_stats_path,
+            {
+                "summary": chair_data["summary"],
+                "chair_teams": chair_data["chair_teams"],
+                "pipeline": chair_data["pipeline"],
+                "retention": chair_data["retention"],
+                "cross_conference": chair_data["cross_conference"],
+            },
+        )
         logger.info(f"  Wrote {chair_stats_path}")
 
         # Add chair summary to the YAML data for Jekyll templates
