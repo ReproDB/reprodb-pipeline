@@ -247,6 +247,12 @@ class OverallStats(BaseModel):
     total_downloads: int = Field(ge=0, description="Sum of Zenodo file downloads across all records.", examples=[32000])
     avg_stars: float = Field(ge=0, description="Mean GitHub star count per repository, e.g. 94.3.", examples=[250.5])
     avg_forks: float = Field(ge=0, description="Mean GitHub fork count per repository, e.g. 12.3.", examples=[65.3])
+    median_stars: float = Field(ge=0, description="Median star count per repository.", examples=[25.0])
+    median_forks: float = Field(ge=0, description="Median fork count per repository.", examples=[6.0])
+    p25_stars: float = Field(ge=0, description="25th percentile of stars.", examples=[8.0])
+    p75_stars: float = Field(ge=0, description="75th percentile of stars.", examples=[80.0])
+    p25_forks: float = Field(ge=0, description="25th percentile of forks.", examples=[2.0])
+    p75_forks: float = Field(ge=0, description="75th percentile of forks.", examples=[18.0])
     last_updated: str = Field(
         description="ISO 8601 UTC timestamp of when the stats were collected, e.g. '2026-04-27 21:26:09 UTC'.",
         examples=["2026-04-27 21:26:09 UTC"],
