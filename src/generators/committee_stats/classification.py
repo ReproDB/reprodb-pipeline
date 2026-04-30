@@ -359,7 +359,11 @@ def _compute_member_stats(all_results: dict, conf_to_area: dict, classified: dic
     -------
     (members_list, systems_members, security_members, summary_dict)
     """
-    del classified  # currently unused; reserved for future country/inst joins
+    # Build a per-person country lookup from the classified data.
+    # classified["by_country"] is {conf_year: {country: count}} — not per-person.
+    # We need to re-classify each member's affiliation to get their country.
+    name_index = _build_university_index()
+    prefix_tree = Trie(**name_index)
 
     member_map: dict = {}
 
@@ -452,6 +456,13 @@ def _compute_member_stats(all_results: dict, conf_to_area: dict, classified: dic
         else:
             rec["area"] = "unknown"
 
+    # Classify each member's affiliation to country/continent (single place).
+    for rec in all_members:
+        aff = rec.get("affiliation", "")
+        country, _ = classify_member(_clean_affiliation(aff), prefix_tree, name_index) if aff else (None, None)
+        rec["country"] = country
+        rec["continent"] = COUNTRY_TO_CONTINENT.get(country, None) if country else None
+
     # Combined (all areas)
     members_list: list = []
     for rec in all_members:
@@ -459,6 +470,8 @@ def _compute_member_stats(all_results: dict, conf_to_area: dict, classified: dic
             "name": rec["name"],
             "display_name": rec.get("display_name", _display_name(rec["name"])),
             "affiliation": rec["affiliation"],
+            "country": rec["country"],
+            "continent": rec["continent"],
             "total_memberships": rec["total_memberships"],
             "chair_count": rec["chair_count"],
             "conferences": sorted(
@@ -486,6 +499,8 @@ def _compute_member_stats(all_results: dict, conf_to_area: dict, classified: dic
             "name": rec["name"],
             "display_name": rec.get("display_name", _display_name(rec["name"])),
             "affiliation": rec["affiliation"],
+            "country": rec["country"],
+            "continent": rec["continent"],
             "total_memberships": rec["sys_memberships"],
             "chair_count": rec["sys_chair_count"],
             "conferences": sorted(
@@ -512,6 +527,8 @@ def _compute_member_stats(all_results: dict, conf_to_area: dict, classified: dic
             "name": rec["name"],
             "display_name": rec.get("display_name", _display_name(rec["name"])),
             "affiliation": rec["affiliation"],
+            "country": rec["country"],
+            "continent": rec["continent"],
             "total_memberships": rec["sec_memberships"],
             "chair_count": rec["sec_chair_count"],
             "conferences": sorted(
