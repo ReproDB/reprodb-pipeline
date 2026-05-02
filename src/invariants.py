@@ -193,6 +193,8 @@ def check_search_data(output_dir: Path) -> list[Violation]:
 
 def check_summary(output_dir: Path) -> list[Violation]:
     """Validate _data/summary.yml invariants."""
+    from src.models import SCHEMA_VERSION
+
     vs: list[Violation] = []
     path = output_dir / "_data" / "summary.yml"
     data = _load_yaml(path)
@@ -216,6 +218,19 @@ def check_summary(output_dir: Path) -> list[Violation]:
         vs.append(Violation(fname, "nonneg", f"total_artifacts={ta} < 0"))
     if tc < 0:
         vs.append(Violation(fname, "nonneg", f"total_conferences={tc} < 0"))
+
+    # Schema version must match pipeline constant
+    sv = data.get("schema_version")
+    if sv is None:
+        vs.append(Violation(fname, "schema_version_present", "Missing schema_version field"))
+    elif str(sv) != SCHEMA_VERSION:
+        vs.append(
+            Violation(
+                fname,
+                "schema_version_match",
+                f"schema_version={sv!r} != SCHEMA_VERSION={SCHEMA_VERSION!r} (pipeline constant)",
+            )
+        )
 
     return vs
 
