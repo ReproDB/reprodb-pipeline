@@ -364,7 +364,7 @@ def aggregate_author_statistics(
                 # If no active_years data available, count all years (backward compat)
                 if not active_years or yr in active_years:
                     conf_titles |= titles
-                    conf_year_counts[yr] = len(titles)
+                    conf_year_counts[str(yr)] = len(titles)
 
             total_papers_set |= conf_titles
             conf_title_sets[conf] = conf_titles
@@ -383,7 +383,7 @@ def aggregate_author_statistics(
                     # Only count papers from years when this conference had AE
                     if not active_years or yr in active_years:
                         conf_titles |= titles
-                        conf_year_counts[yr] = len(titles)
+                        conf_year_counts[str(yr)] = len(titles)
 
                 total_papers_set |= conf_titles
                 conf_title_sets[c] = conf_titles
