@@ -1,0 +1,2 @@
+# Mark generated/large test fixtures as generated so they are collapsed in PR diffs
+tests/snapshots/pipeline_snapshot.json linguist-generated=true
