@@ -74,7 +74,7 @@ jobs:
 
       - name: "Build/update canonical author index"
         run: |
-          python -m src.generators.generate_author_index \
+          python -m src.generators.authors.generate_author_index \
             --data_dir website/src
       
       - name: "Enrichment layer 1: CSRankings (offline faculty match)"
@@ -128,7 +128,7 @@ jobs:
       - name: "Sync author index after enrichment"
         run: |
           echo "Syncing author index with enriched data..."
-          python -m src.generators.generate_author_index \
+          python -m src.generators.authors.generate_author_index \
             --data_dir website/src
 
       - name: Check for enrichment changes
