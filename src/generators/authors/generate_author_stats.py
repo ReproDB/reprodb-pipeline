@@ -575,7 +575,7 @@ def generate_author_stats(dblp_file: str, data_dir: str, output_dir: str) -> Non
     (output_dir / "assets/data").mkdir(parents=True, exist_ok=True)
 
     # --- Build paper index and replace embedded papers with IDs ---
-    from .generate_paper_index import build_paper_index, load_existing_index, normalize_title
+    from src.generators.output.generate_paper_index import build_paper_index, load_existing_index, normalize_title
 
     # Load existing index from the canonical location (assets/data)
     assets_papers = output_dir / "assets/data/papers.json"
