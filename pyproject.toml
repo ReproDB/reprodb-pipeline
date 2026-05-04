@@ -32,8 +32,8 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 # matplotlib.use("Agg") must precede pyplot import
-"src/generators/generate_committee_stats.py" = ["E402"]
-"src/generators/generate_visualizations.py" = ["E402"]
+"src/generators/committee_stats/generate_committee_stats.py" = ["E402"]
+"src/generators/output/generate_visualizations.py" = ["E402"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["src"]
@@ -62,18 +62,15 @@ module = [
     "src.generators.repository.generate_repo_stats",
     "src.generators.authors.generate_author_stats",
     "src.generators.authors.generate_area_authors",
-    "src.generators.generate_artifact_sources_table",
     "src.generators.rankings.generate_institution_rankings",
-    "src.generators.generate_committee_stats",
+    "src.generators.committee_stats.generate_committee_stats",
     "src.generators.citations.generate_artifact_citations",
     "src.generators.citations.generate_cited_artifacts_list",
     "src.generators.output.generate_statistics",
-    "src.generators.generate_artifact_sources_timeline",
     "src.generators.citations.verify_artifact_citations",
     "src.generators.repository.generate_artifact_availability",
     "src.generators.output.generate_visualizations",
     "src.generators.citations.export_artifact_citations",
-    "src.generators.analyze_retention",
     "src.generators.rankings.generate_ranking_history",
     "src.generators.repository.generate_participation_stats",
     "src.generators.authors.generate_author_index",

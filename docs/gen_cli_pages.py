@@ -20,7 +20,7 @@ MODULES = [
     ("src.generators.output.generate_visualizations", "generate_visualizations", "Generators", "6"),
     ("src.generators.authors.generate_author_stats", "generate_author_stats", "Generators", "7"),
     ("src.generators.authors.generate_area_authors", "generate_area_authors", "Generators", "8"),
-    ("src.generators.generate_committee_stats", "generate_committee_stats", "Generators", "9"),
+    ("src.generators.committee_stats.generate_committee_stats", "generate_committee_stats", "Generators", "9"),
     ("src.generators.rankings.generate_combined_rankings", "generate_combined_rankings", "Generators", "10"),
     ("src.generators.rankings.generate_institution_rankings", "generate_institution_rankings", "Generators", "11"),
     ("src.generators.authors.generate_author_profiles", "generate_author_profiles", "Generators", "12"),

@@ -114,7 +114,7 @@ STAGES: tuple[Stage, ...] = (
     ),
     Stage(
         name="committee_stats",
-        module="src.generators.generate_committee_stats",
+        module="src.generators.committee_stats.generate_committee_stats",
         description="Generate committee statistics",
         depends_on=("statistics",),
         optional=True,

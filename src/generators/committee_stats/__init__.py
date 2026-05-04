@@ -9,7 +9,7 @@ Three submodules:
 
 The :func:`generate_committee_data` function ties them together and is the
 public entry point used by the CLI orchestrator
-:mod:`src.generators.generate_committee_stats`.
+:mod:`src.generators.committee_stats.generate_committee_stats`.
 """
 
 from __future__ import annotations

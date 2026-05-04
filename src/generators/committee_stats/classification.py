@@ -11,13 +11,12 @@ from __future__ import annotations
 import json
 import logging
 from collections import defaultdict
-from pathlib import Path
 
+import country_converter as coco
 from pytrie import Trie
 from thefuzz import fuzz
 
 from src.scrapers.repo_utils import download_file
-from src.utils.io.io import load_yaml
 from src.utils.normalization.affiliation import normalize_affiliation as _normalize_affiliation
 from src.utils.normalization.conference import (
     clean_name as _display_name,
@@ -31,13 +30,29 @@ from src.utils.normalization.conference import (
 
 logger = logging.getLogger(__name__)
 
-# ── Country → Continent mapping ──────────────────────────────────────────────
+# ── Country → Continent mapping (via country_converter) ──────────────────────
 
-COUNTRY_TO_CONTINENT: dict[str, str] = {}
-_DATA_DIR = Path(__file__).parent.parent.parent / "data"
-_CONTINENT_FILE = _DATA_DIR / "country_to_continent.yml"
-if _CONTINENT_FILE.exists():
-    COUNTRY_TO_CONTINENT = load_yaml(_CONTINENT_FILE, default={})
+_CC = coco.CountryConverter()
+
+
+def _country_to_continent(country: str) -> str | None:
+    """Map a country name to a continent using country_converter.
+
+    Returns continent string matching the legacy format:
+    Africa, Asia, Europe, North America, South America, Oceania.
+    Returns None if the country is not recognized.
+    """
+    if not country:
+        return None
+    continent = _CC.convert(country, to="continent")
+    if continent == "not found":
+        return None
+    if continent == "America":
+        region = _CC.convert(country, to="UNregion")
+        if region == "South America":
+            return "South America"
+        return "North America"
+    return continent
 
 
 def _build_university_index() -> dict:
@@ -264,7 +279,7 @@ def classify_committees(all_results: dict) -> dict:
             country, inst_name = classify_member(affiliation, prefix_tree, name_index)
             if country:
                 by_conf_country[conf_year][country] += 1
-                continent = COUNTRY_TO_CONTINENT.get(country, "Unknown")
+                continent = _country_to_continent(country) or "Unknown"
                 by_conf_continent[conf_year][continent] += 1
                 by_conf_institution[conf_year][inst_name or member["affiliation"]] += 1
             else:
@@ -461,7 +476,7 @@ def _compute_member_stats(all_results: dict, conf_to_area: dict, classified: dic
         aff = rec.get("affiliation", "")
         country, _ = classify_member(_clean_affiliation(aff), prefix_tree, name_index) if aff else (None, None)
         rec["country"] = country
-        rec["continent"] = COUNTRY_TO_CONTINENT.get(country, None) if country else None
+        rec["continent"] = _country_to_continent(country) if country else None
 
     # Combined (all areas)
     members_list: list = []
