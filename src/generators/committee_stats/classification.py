@@ -225,14 +225,14 @@ def _top_n(d: dict, n: int = 20) -> list:
     return sorted(d.items(), key=lambda x: x[1], reverse=True)[:n]
 
 
-def _compute_member_stats(all_results: dict, conf_to_area: dict, classified: dict):
+def _compute_member_stats(all_results: dict, conf_to_area: dict, classified: dict, output_dir=None):
     """Compute statistics for all AE committee members.
 
     For each unique person (matched by normalized name), track:
     - Total memberships across all conference-years
     - Number of times served as chair
     - Conferences and years served
-    - Most recent affiliation
+    - Most recent affiliation (cross-referenced with the author index)
     - Area (systems/security/both)
 
     Parameters
@@ -243,6 +243,9 @@ def _compute_member_stats(all_results: dict, conf_to_area: dict, classified: dic
         {conf_year: 'systems'|'security'|'unknown'}
     classified : dict
         Classification data (kept for API compatibility, not yet consumed).
+    output_dir : str or Path, optional
+        Website repo root — when provided, the author index is loaded to
+        prefer the canonical (current) affiliation over the historical one.
 
     Returns
     -------
@@ -334,6 +337,28 @@ def _compute_member_stats(all_results: dict, conf_to_area: dict, classified: dic
 
     # Include all members (≥1 membership) for complete statistics.
     all_members = list(member_map.values())
+
+    # Cross-reference the author index so that AE members show their
+    # current affiliation rather than the (possibly outdated) one from
+    # the committee list they last appeared on.
+    if output_dir:
+        from src.utils.normalization.author_index import load_author_index
+
+        _, authors_by_name = load_author_index(str(output_dir))
+        updated = 0
+        for rec in all_members:
+            author = authors_by_name.get(rec["name"])
+            if author and author.get("affiliation") and rec["affiliation"] != author["affiliation"]:
+                logger.debug(
+                    "AE member %s: affiliation updated from '%s' to '%s' (author index)",
+                    rec["name"],
+                    rec["affiliation"],
+                    author["affiliation"],
+                )
+                rec["affiliation"] = author["affiliation"]
+                updated += 1
+        if updated:
+            logger.info("  Updated %d AE member affiliations from author index", updated)
 
     for rec in all_members:
         if "systems" in rec["areas"] and "security" in rec["areas"]:
