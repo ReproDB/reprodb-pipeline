@@ -360,35 +360,21 @@ def main():
     else:
         logger.info(f"  ✗ {combined_path} not found")
 
-    # Process scoped combined rankings (per-area + per-conference) into a single
-    # consolidated institution_rankings_scoped.json. Each row tagged with `scope`.
-    scoped_path = data_dir / "combined_rankings_scoped.json"
-    if scoped_path.exists():
-        logger.info("Processing scoped institution rankings...")
-        scoped_authors = load_combined_ranking(scoped_path)
-        # Group rows by scope, then aggregate independently per scope.
-        from collections import defaultdict
+    # Process per-area combined rankings (systems, security) into separate files.
+    # Each gets country_code enrichment so the website doesn't need a lookup step.
+    for area in ("systems", "security"):
+        area_combined_path = data_dir / f"{area}_combined_rankings.json"
+        if area_combined_path.exists():
+            logger.info(f"Processing {area} institution rankings...")
+            area_data = load_combined_ranking(area_combined_path)
+            area_institutions = aggregate_by_institution(area_data)
+            _enrich_with_country(area_institutions)
 
-        by_scope: dict[str, list[dict]] = defaultdict(list)
-        for row in scoped_authors:
-            scope = row.get("scope")
-            if scope:
-                by_scope[scope].append(row)
-
-        scoped_institutions: list[dict] = []
-        for scope in sorted(by_scope.keys()):
-            insts = aggregate_by_institution(by_scope[scope])
-            _enrich_with_country(insts)
-            for inst in insts:
-                inst["scope"] = scope
-                scoped_institutions.append(inst)
-            logger.info(f"  ✓ {scope}: {len(insts)} institutions")
-
-        out = data_dir / "institution_rankings_scoped.json"
-        save_validated_json(out, scoped_institutions, InstitutionRanking)
-        logger.info(f"  ✓ Generated {out} ({len(scoped_institutions)} entries across all scopes)")
-    else:
-        logger.info(f"  ✗ {scoped_path} not found")
+            area_output = data_dir / f"{area}_institution_rankings.json"
+            save_validated_json(area_output, area_institutions, InstitutionRanking)
+            logger.info(f"  ✓ Generated {area_output} ({len(area_institutions)} institutions)")
+        else:
+            logger.info(f"  ✗ {area_combined_path} not found")
 
 
 if __name__ == "__main__":
