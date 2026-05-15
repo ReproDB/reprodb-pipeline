@@ -34,8 +34,6 @@ ignore = [
 # matplotlib.use("Agg") must precede pyplot import
 "src/generators/committee_stats/generate_committee_stats.py" = ["E402"]
 "src/generators/output/generate_visualizations.py" = ["E402"]
-# Utility script — prints are intentional
-"check_zenodo_github_links.py" = ["T20", "B007", "F541"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["src"]
