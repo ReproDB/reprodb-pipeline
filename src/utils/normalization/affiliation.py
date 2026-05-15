@@ -59,6 +59,9 @@ def normalize_affiliation(affiliation: str) -> str:
     if not aff:
         return ""
 
+    # Strip leading "The " so individual YAML rules don't need ^The\s+ variants.
+    aff = re.sub(r"^[Tt]he\s+", "", aff)
+
     # 1. Apply explicit pattern rules
     for pat, canonical in _AFFILIATION_RULES:
         if pat.search(aff):
