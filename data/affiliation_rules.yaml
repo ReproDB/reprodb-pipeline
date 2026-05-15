@@ -14,6 +14,7 @@
   patterns:
     - '^EPFL\b'
     - '\bEPFL\b'
+    - '^EFPL\b'
     - '\bSwiss\s+Federal\s+Institute\s+of\s+Technology\s+in\s+Lausanne\b'
     - '\bEcole\s+Polytechnique\s+Federale\s+de\s+Lausanne\b'
     - '\bÉcole\s+Polytechnique\s+Fédérale\s+de\s+Lausanne\b'
@@ -92,7 +93,7 @@
 
 - canonical: University of California, Riverside
   patterns:
-    - 'UC\s+Riverside'
+    - 'UC[,\s]+Riverside'
     - 'University\s+of\s+California,?\s+Riverside'
 
 - canonical: University of California, Los Angeles
@@ -195,6 +196,11 @@
     - 'Hong\s+Kong\s+University\s+of\s+Science\s+and\s+Technology'
     - '\bHKUST\b'
 
+- canonical: Chinese University of Hong Kong, Shenzhen
+  patterns:
+    - 'Chinese\s+University\s+of\s+Hong\s+Kong.*Shenzhen'
+    - '\bCUHK[\s(,-]*Shenzhen'
+
 - canonical: Chinese University of Hong Kong
   patterns:
     - 'Chinese\s+University\s+of\s+Hong\s+Kong'
@@ -259,8 +265,12 @@
 - canonical: Shanghai Jiao Tong University
   patterns:
     - 'Shanghai\s+Jiao\s*Tong'
-    - 'Jiaotong'
+    - '(?<!west\s)Jiaotong'
     - '\bSJTU\b'
+
+- canonical: Southwest Jiaotong University
+  patterns:
+    - 'Southwest\s+Jiaotong'
 
 - canonical: Meta
   patterns:
@@ -349,7 +359,11 @@
 
 - canonical: The University of Hong Kong
   patterns:
-    - '[Tt]he\s+University\s+of\s+Hong\s+Kong\b'
+    - '^University\s+of\s+Hong\s+Kong\b'
+
+- canonical: Hang Seng University of Hong Kong
+  patterns:
+    - 'Hang\s+Seng\s+University'
 
 - canonical: Inria
   patterns:
@@ -372,57 +386,62 @@
   patterns:
     - '^TU\s+Darmstadt\b'
     - '^Technical\s+University\s+of\s+Darmstadt\b'
-    - '^Technische\s+Universit'
+    - '^Technische\s+Universit[aä]t\s+Darmstadt\b'
+
+- canonical: Pennsylvania State University
+  patterns:
+    - 'Pennsylvania\s+State\s+University'
+    - '\bPenn\s+State\b'
 
 - canonical: University of Pennsylvania
   patterns:
-    - 'Pennsylvani'
+    - '\bUniversity\s+of\s+Pennsylvania\b'
+    - '^UPenn\b'
+    - '^Penn$'
 
 # ── "The" prefix normalization ──
+# Leading "The " is stripped automatically in normalize_affiliation(),
+# so rules below only need the non-"The" pattern.
+
 - canonical: University of Chicago
   patterns:
-    - '^The\s+University\s+of\s+Chicago\b'
     - '^University\s+of\s+Chicago\b'
 
 - canonical: George Washington University
   patterns:
-    - '^The\s+George\s+Washington\s+University\b'
     - '^George\s+Washington\s+University\b'
 
 - canonical: The Ohio State University
   patterns:
     - '^Ohio\s+State\s+University\b'
-    - '^The\s+Ohio\s+State\s+University\b'
 
 - canonical: University of Manchester
   patterns:
-    - '^The\s+University\s+of\s+Manchester\b'
     - '^University\s+of\s+Manchester\b'
 
 - canonical: University of Melbourne
   patterns:
-    - '^The\s+University\s+of\s+Melbourne\b'
     - '^University\s+of\s+Melbourne\b'
 
 - canonical: University of Queensland
   patterns:
-    - '^The\s+University\s+of\s+Queensland\b'
     - '^University\s+of\s+Queensland\b'
 
 - canonical: University of Texas at Arlington
   patterns:
-    - '^The\s+University\s+of\s+Texas\s+at\s+Arlington\b'
     - '^University\s+of\s+Texas\s+at\s+Arlington\b'
 
 - canonical: University of Texas at Dallas
   patterns:
-    - '^The\s+University\s+of\s+Texas\s+at\s+Dallas\b'
     - '^University\s+of\s+Texas\s+at\s+Dallas\b'
 
 - canonical: University of Tokyo
   patterns:
-    - '^The\s+University\s+of\s+Tokyo\b'
     - '^University\s+of\s+Tokyo\b'
+
+- canonical: University of Utah
+  patterns:
+    - 'University\s+of\s+Utah'
 
 # ── Location suffix normalization ──
 - canonical: Academia Sinica
@@ -482,9 +501,12 @@
   patterns:
     - '^[EÉ]cole\s+Normale\s+Sup[eé]rieure\b'
 
-- canonical: University of Erlangen-Nuremberg
+- canonical: Friedrich-Alexander-Universität Erlangen-Nürnberg
   patterns:
     - '^University\s+of\s+Erlangen'
+    - 'Friedrich[\s-]+Alexander'
+    - 'FAU\s+Erlangen'
+    - '^FAU\b'
 
 - canonical: University of Massachusetts Amherst
   patterns:
@@ -493,6 +515,52 @@
     - '^Univ\.?\s+of\s+Massachusetts\s+Amherst\b'
     - '^UMass\s+Amherst\b'
     - '^Umass\s+Amherst\b'
+
+# ── Additional institution rules ──
+- canonical: City, University of London
+  patterns:
+    - '^City[,\s]+University\s+of\s+London'
+
+- canonical: William & Mary
+  patterns:
+    - 'William\s*[&]\s*Mary'
+    - 'William\s+and\s+Mary'
+
+- canonical: Binghamton University
+  patterns:
+    - '^Binghamton\b'
+
+- canonical: Chalmers University of Technology
+  patterns:
+    - 'Chalmers\s+University'
+    - '^Chalmers\b'
+
+- canonical: Apple
+  patterns:
+    - '^Apple\b'
+
+- canonical: AMD
+  patterns:
+    - '^AMD\b'
+
+- canonical: Nokia Bell Labs
+  patterns:
+    - 'Bell\s+Labs'
+    - '\bNokia\s+Bell\b'
+
+- canonical: Northeastern University (China)
+  patterns:
+    - 'Northeastern\s+University.*China'
+    - 'Northeastern\s+University.*Shenyang'
+
+- canonical: TU Braunschweig
+  patterns:
+    - 'Technische\s+Universit[aä]t\s+Braunschweig'
+
+- canonical: TU Ilmenau
+  patterns:
+    - 'Technische\s+Universit[aä]t\s+Ilmenau'
+    - '\bTU\s+Ilmenau\b'
 
 # ── Typo fixes ──
 - canonical: "New York University Abu Dhabi"
