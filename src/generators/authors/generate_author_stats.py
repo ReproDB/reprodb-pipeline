@@ -588,6 +588,58 @@ def generate_author_stats(dblp_file: str, data_dir: str, output_dir: str) -> Non
     artifact_count = sum(1 for p in papers_list if p.get("has_artifact", True))
     logger.info(f"Paper index: {len(papers_list)} papers ({artifact_count} with artifacts)")
 
+    # Back-patch artifacts.json with paper_id linkage
+    from src.models.artifacts.artifacts import Artifact
+
+    artifacts_path = output_dir / "assets/data/artifacts.json"
+    if artifacts_path.exists():
+        artifacts = load_json(artifacts_path)
+        linked = 0
+
+        # First pass: link artifacts whose titles already exist in the paper index
+        unlinked = []
+        for art in artifacts:
+            norm = normalize_title(art.get("title", ""))
+            pid = norm_to_id.get(norm)
+            if pid is not None:
+                art["paper_id"] = pid
+                linked += 1
+            else:
+                unlinked.append((art, norm))
+
+        # Second pass: create paper entries for artifacts not yet in the index
+        # (e.g. papers too new for DBLP, or DBLP title-matching misses)
+        next_id = max(p["id"] for p in papers_list) if papers_list else 0
+        new_papers = 0
+        for art, norm in unlinked:
+            if not norm:
+                continue
+            next_id += 1
+            papers_list.append(
+                {
+                    "id": next_id,
+                    "title": art["title"],
+                    "conference": art.get("conference", ""),
+                    "year": art.get("year"),
+                    "category": art.get("category", ""),
+                    "badges": art.get("badges", []),
+                    "artifact_citations": 0,
+                    "has_artifact": True,
+                }
+            )
+            norm_to_id[norm] = next_id
+            art["paper_id"] = next_id
+            linked += 1
+            new_papers += 1
+
+        save_validated_json(artifacts_path, artifacts, Artifact, indent=None)
+        if new_papers:
+            # Re-write paper index with the new entries
+            papers_list.sort(key=lambda x: x["id"])
+            save_json(assets_papers, papers_list, indent=None)
+            logger.info(f"Paper index: added {new_papers} papers from unlinked artifacts")
+        logger.info(f"Artifacts: linked {linked}/{len(artifacts)} to paper IDs")
+
     # Replace embedded papers with paper_ids in authors_list
     for author in authors_list:
         paper_ids = []
