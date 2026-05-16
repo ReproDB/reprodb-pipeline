@@ -110,6 +110,14 @@ class AuthorCore(BaseModel):
         description="Total number of 'reproduced' badges across all this author's artifacts.",
         examples=[8],
     )
+    paper_ids: list[int] = Field(
+        default_factory=list,
+        description="Stable integer IDs referencing papers in papers.json that have evaluated artifacts.",
+    )
+    papers_without_artifact_ids: list[int] = Field(
+        default_factory=list,
+        description="Stable integer IDs referencing papers in papers.json that do NOT have evaluated artifacts.",
+    )
     category: Literal["systems", "security", "both", "unknown"] = Field(
         description="Research domain based on conferences published at: 'systems', 'security', 'both', or 'unknown'.",
     )

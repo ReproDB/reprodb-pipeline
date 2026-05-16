@@ -68,7 +68,7 @@ def generate_search_data(data_dir: str) -> list:
             "authors": clean_authors,
             "affiliations": affiliations,
         }
-        for optional_key in ("paper_url", "appendix_url", "award"):
+        for optional_key in ("paper_id", "paper_url", "appendix_url", "award"):
             if art.get(optional_key):
                 entry[optional_key] = art[optional_key]
         merged.append(entry)

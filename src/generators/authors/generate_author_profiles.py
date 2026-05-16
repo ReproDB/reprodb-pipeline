@@ -78,8 +78,8 @@ def generate_profiles(data_dir: str) -> None:
                     or (ae.get("affiliation", "") if ae else "")
                 )
             ),
-            "papers": a.get("papers", []),
-            "papers_without_artifacts": a.get("papers_without_artifacts", []),
+            "paper_ids": a.get("paper_ids", []),
+            "papers_without_artifact_ids": a.get("papers_without_artifact_ids", []),
             "conferences": a.get("conferences", []),
             "years": a.get("years", []),
             "artifact_count": a.get("artifact_count", 0),
@@ -147,7 +147,8 @@ def generate_profiles(data_dir: str) -> None:
             "affiliation": _normalize_affiliation(
                 clean((cr.get("affiliation", "") if cr else "") or m.get("affiliation", ""))
             ),
-            "papers": [],
+            "paper_ids": [],
+            "papers_without_artifact_ids": [],
             "conferences": list(
                 dict.fromkeys(
                     c[0] if isinstance(c, list) else c["conference"] if isinstance(c, dict) else c
@@ -211,7 +212,7 @@ def generate_profiles(data_dir: str) -> None:
     save_json(out_path, profile_list, compact=True)
 
     logger.info(f"Wrote {out_path} ({len(profile_list)} profiles, {out_path.stat().st_size / 1024:.0f}KB)")
-    logger.info(f"  Authors with papers: {sum(1 for p in profile_list if p['papers'])}")
+    logger.info(f"  Authors with papers: {sum(1 for p in profile_list if p.get('paper_ids'))}")
     logger.info(f"  Authors with AE service: {sum(1 for p in profile_list if p.get('ae_memberships', 0) > 0)}")
 
 
