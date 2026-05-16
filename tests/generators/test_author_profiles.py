@@ -83,7 +83,8 @@ class TestGenerateProfiles:
         assert len(profiles) == 1
         p = profiles[0]
         assert p["name"] == "Bob Jones"
-        assert p["papers"] == []
+        assert p["paper_ids"] == []
+        assert p["papers_without_artifact_ids"] == []
         assert p["ae_memberships"] == 2
         assert p["chair_count"] == 1
         # ae_score = 2*3 + 1*2 = 8

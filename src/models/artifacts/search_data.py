@@ -53,6 +53,12 @@ class SearchEntry(BaseModel):
         description="URL to supplementary materials or appendix. Null if not available.",
         examples=["https://arxiv.org/abs/2301.12345"],
     )
+    paper_id: int | None = Field(
+        default=None,
+        ge=1,
+        description="Stable integer ID of the associated paper in papers.json. Null when no paper match was found.",
+        examples=[42],
+    )
     award: str | None = Field(
         default=None,
         description="Award designation such as 'Distinguished Artifact'. Null if no award.",

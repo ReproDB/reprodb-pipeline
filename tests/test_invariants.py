@@ -191,20 +191,20 @@ class TestSearchData:
 class TestSummary:
     def test_valid_passes(self, output_dir):
         _write_yaml(
-            output_dir / "_data/summary.yml", "schema_version: 0.1.4\ntotal_artifacts: 100\ntotal_conferences: 10\n"
+            output_dir / "_data/summary.yml", "schema_version: 0.2.0\ntotal_artifacts: 100\ntotal_conferences: 10\n"
         )
         vs = check_summary(output_dir)
         errors = [v for v in vs if v.severity == "error"]
         assert errors == []
 
     def test_missing_key_flagged(self, output_dir):
-        _write_yaml(output_dir / "_data/summary.yml", "schema_version: 0.1.4\ntotal_artifacts: 100\n")
+        _write_yaml(output_dir / "_data/summary.yml", "schema_version: 0.2.0\ntotal_artifacts: 100\n")
         vs = check_summary(output_dir)
         assert any("required_key" in v.check for v in vs)
 
     def test_negative_artifacts_flagged(self, output_dir):
         _write_yaml(
-            output_dir / "_data/summary.yml", "schema_version: 0.1.4\ntotal_artifacts: -1\ntotal_conferences: 10\n"
+            output_dir / "_data/summary.yml", "schema_version: 0.2.0\ntotal_artifacts: -1\ntotal_conferences: 10\n"
         )
         vs = check_summary(output_dir)
         assert any("nonneg" in v.check for v in vs)
@@ -225,7 +225,7 @@ class TestSummary:
 class TestCrossFileConsistency:
     def test_search_data_drift_flagged(self, output_dir):
         _write_yaml(
-            output_dir / "_data/summary.yml", "schema_version: 0.1.4\ntotal_artifacts: 100\ntotal_conferences: 10\n"
+            output_dir / "_data/summary.yml", "schema_version: 0.2.0\ntotal_artifacts: 100\ntotal_conferences: 10\n"
         )
         _write_json(
             output_dir / "assets/data/search_data.json",
@@ -236,7 +236,7 @@ class TestCrossFileConsistency:
 
     def test_no_drift_passes(self, output_dir):
         _write_yaml(
-            output_dir / "_data/summary.yml", "schema_version: 0.1.4\ntotal_artifacts: 5\ntotal_conferences: 1\n"
+            output_dir / "_data/summary.yml", "schema_version: 0.2.0\ntotal_artifacts: 5\ntotal_conferences: 1\n"
         )
         _write_json(
             output_dir / "assets/data/search_data.json",
@@ -255,7 +255,7 @@ class TestCheckAll:
 
     def test_check_all_on_valid_output(self, output_dir):
         _write_yaml(
-            output_dir / "_data/summary.yml", "schema_version: 0.1.4\ntotal_artifacts: 1\ntotal_conferences: 1\n"
+            output_dir / "_data/summary.yml", "schema_version: 0.2.0\ntotal_artifacts: 1\ntotal_conferences: 1\n"
         )
         _write_json(
             output_dir / "assets/data/combined_rankings.json",

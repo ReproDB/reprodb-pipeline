@@ -4,7 +4,7 @@ These models are the single source of truth for data schemas.
 JSON Schema files are generated from these models via ``export_schemas.py``.
 """
 
-SCHEMA_VERSION = "0.1.4"
+SCHEMA_VERSION = "0.2.0"
 """Semantic version for the schema bundle.
 
 Bump this when any model changes:

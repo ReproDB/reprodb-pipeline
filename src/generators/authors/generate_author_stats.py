@@ -588,6 +588,22 @@ def generate_author_stats(dblp_file: str, data_dir: str, output_dir: str) -> Non
     artifact_count = sum(1 for p in papers_list if p.get("has_artifact", True))
     logger.info(f"Paper index: {len(papers_list)} papers ({artifact_count} with artifacts)")
 
+    # Back-patch artifacts.json with paper_id linkage
+    from src.models.artifacts.artifacts import Artifact
+
+    artifacts_path = output_dir / "assets/data/artifacts.json"
+    if artifacts_path.exists():
+        artifacts = load_json(artifacts_path)
+        linked = 0
+        for art in artifacts:
+            norm = normalize_title(art.get("title", ""))
+            pid = norm_to_id.get(norm)
+            if pid is not None:
+                art["paper_id"] = pid
+                linked += 1
+        save_validated_json(artifacts_path, artifacts, Artifact, indent=None)
+        logger.info(f"Artifacts: linked {linked}/{len(artifacts)} to paper IDs")
+
     # Replace embedded papers with paper_ids in authors_list
     for author in authors_list:
         paper_ids = []
