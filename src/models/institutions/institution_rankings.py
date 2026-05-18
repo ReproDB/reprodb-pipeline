@@ -138,9 +138,10 @@ class InstitutionRanking(BaseModel):
     years: dict[str, int] = Field(
         description="Year (as string) → activity count, e.g. {'2023': 31, '2024': 59}.", examples=[[2021, 2022, 2023]]
     )
-    top_authors: list[TopAuthor] = Field(
+    top_authors: list[TopAuthor] | None = Field(
+        default=None,
         max_length=20,
-        description="Up to 20 top-scoring authors from this institution, sorted by combined_score descending.",
+        description="Up to 20 top-scoring authors from this institution, sorted by combined_score descending. Null in per-conference rankings.",
     )
     scope: str | None = Field(
         default=None,
