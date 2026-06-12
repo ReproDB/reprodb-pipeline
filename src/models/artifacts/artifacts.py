@@ -9,32 +9,14 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-CONFERENCE_NAMES = Literal[
-    "ACSAC",
-    "ATC",
-    "CAIS",
-    "CHES",
-    "EUROSYS",
-    "FAST",
-    "NDSS",
-    "OSDI",
-    "PETS",
-    "SC",
-    "SOSP",
-    "SYSTEX",
-    "USENIXSEC",
-    "VEHICLESEC",
-    "WOOT",
-]
-
 CATEGORY = Literal["systems", "security"]
 
 
 class Artifact(BaseModel):
     """A single research artifact associated with a conference paper."""
 
-    conference: CONFERENCE_NAMES = Field(
-        description="Conference abbreviation, e.g. 'OSDI', 'USENIXSEC', 'NDSS'. See CONFERENCE_NAMES for the full list.",
+    conference: str = Field(
+        description="Conference abbreviation, e.g. 'OSDI', 'USENIXSEC', 'NDSS'. Discovered dynamically from sys/secartifacts folder structure.",
         examples=["OSDI"],
     )
     category: CATEGORY = Field(

@@ -51,6 +51,7 @@ def _load_known_dead_hosts() -> set[str]:
 
 
 CACHE_TTL = _SECONDS_PER_DAY * 30  # 30 days – conference listings & raw file downloads
+CACHE_TTL_RESULTS = _SECONDS_PER_DAY * 1  # 1 day – results/committee files (change frequently)
 CACHE_TTL_URL = _SECONDS_PER_DAY * 90  # 90 days – URL existence checks (positive)
 CACHE_TTL_URL_NEG = _SECONDS_PER_DAY * 7  # 7 days  – URL non-existence checks (re-check weekly)
 CACHE_TTL_STATS = _SECONDS_PER_DAY * 30  # 30 days – GitHub/Zenodo/Figshare stats
@@ -82,8 +83,8 @@ github_urls = {
         "api_url": "https://api.github.com/repos/sysartifacts/sysartifacts.github.io/contents/_conferences/",
     },
     "sec": {
-        "base_url": "https://github.com/secartifacts/secartifacts.github.io/blob/master/_conferences/",
-        "raw_base_url": "https://raw.githubusercontent.com/secartifacts/secartifacts.github.io/master/_conferences/",
+        "base_url": "https://github.com/secartifacts/secartifacts.github.io/blob/main/_conferences/",
+        "raw_base_url": "https://raw.githubusercontent.com/secartifacts/secartifacts.github.io/main/_conferences/",
         "api_url": "https://api.github.com/repos/secartifacts/secartifacts.github.io/contents/_conferences/",
     },
 }
@@ -482,12 +483,21 @@ def _cached_get(url):
 
     For GitHub API URLs, sends If-None-Match so that 304 responses are free
     (do not count against rate limits).
+
+    Conference directory listings and results/committee files use a short TTL
+    (1 day) so new conferences are picked up quickly.
     """
-    cached = _read_cache(CACHE_DIR, url, ttl=CACHE_TTL, namespace="http_get")
+    # Use shorter TTL for content that changes when new conferences/results are added
+    is_github_api = "api.github.com" in url
+    is_content_url = "raw.githubusercontent.com" in url and (
+        "/results.md" in url or "/result.md" in url or "/committee.md" in url or "/organizers.md" in url
+    )
+    ttl = CACHE_TTL_RESULTS if (is_github_api or is_content_url) else CACHE_TTL
+
+    cached = _read_cache(CACHE_DIR, url, ttl=ttl, namespace="http_get")
     if cached is not _MISSING:
         return cached
 
-    is_github_api = "api.github.com" in url
     headers = _github_headers() if is_github_api else {}
 
     # Use stored ETag for conditional request if available
