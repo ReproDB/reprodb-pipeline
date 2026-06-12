@@ -126,7 +126,11 @@ jobs:
           if [ -d "dblp-results" ] && [ "$(ls -A dblp-results)" ]; then
             echo "Found DBLP analysis results, merging into website..."
             cp -r dblp-results/_data/* website/src/_data/ 2>/dev/null || true
-            cp -r dblp-results/assets/data/* website/src/assets/data/ 2>/dev/null || true
+            # Copy DBLP outputs but skip artifacts.json (generated fresh by generate_statistics)
+            for f in dblp-results/assets/data/*; do
+              [ "$(basename "$f")" = "artifacts.json" ] && continue
+              cp -r "$f" website/src/assets/data/ 2>/dev/null || true
+            done
             echo "DBLP results merged successfully"
           else
             echo "⚠️ No recent DBLP analysis results found (pipeline runs separately)"

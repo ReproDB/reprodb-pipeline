@@ -152,7 +152,6 @@ jobs:
             website/src/_data/authors.yml
             website/src/_data/author_summary.yml
             website/src/_data/papers.json
-            website/src/assets/data/artifacts.json
             website/src/assets/data/authors.json
             website/src/assets/data/author_index.json
             website/src/assets/data/paper_authors_map.json
