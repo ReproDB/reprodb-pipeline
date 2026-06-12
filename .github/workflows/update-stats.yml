@@ -13,6 +13,10 @@ on:
         type: boolean
         default: true
 
+  # Triggered by sysartifacts/secartifacts repos when results or organizers change
+  repository_dispatch:
+    types: [source-data-updated]
+
 permissions:
   contents: write
   packages: write
@@ -96,8 +100,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.CROSS_REPO_TOKEN }}
         run: |
           REFRESH_FLAG=""
-          # Scheduled runs always refresh; manual runs use the input toggle
-          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ inputs.refresh_repo_stats }}" == "true" ]]; then
+          # Scheduled runs always refresh; dispatch/manual runs use the input toggle
+          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "repository_dispatch" ]] || [[ "${{ inputs.refresh_repo_stats }}" == "true" ]]; then
             REFRESH_FLAG="--refresh"
           fi
           cd reprodb-pipeline
