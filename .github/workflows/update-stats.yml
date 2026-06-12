@@ -67,6 +67,7 @@ jobs:
           pip install jsonschema
 
       - name: Restore HTTP response cache
+        if: ${{ github.event_name != 'repository_dispatch' }}
         uses: actions/cache@v5
         with:
           path: reprodb-pipeline/src/.cache
