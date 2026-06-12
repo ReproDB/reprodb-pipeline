@@ -111,8 +111,7 @@ def _find_author_openalex_id_via_coauthor(
         return cached if cached else None
 
     works_url = (
-        f"https://api.openalex.org/works?filter=author.id:{coauthor_oa_id}"
-        f"&per_page=200&select=title,authorships"
+        f"https://api.openalex.org/works?filter=author.id:{coauthor_oa_id}&per_page=200&select=title,authorships"
     )
     try:
         time.sleep(OPENALEX_DELAY)
@@ -236,8 +235,7 @@ def resolve_via_coauthor_bridge(
     if vote_count < min_required:
         if verbose:
             logger.info(
-                f"      Bridge: {target_name} no consensus "
-                f"(best={best_id}, votes={vote_count}, need={min_required})"
+                f"      Bridge: {target_name} no consensus (best={best_id}, votes={vote_count}, need={min_required})"
             )
         return None
 
@@ -382,13 +380,12 @@ def enrich(
                 save_author_index,
                 update_author_affiliation,
             )
+
             _, index_by_name = load_author_index(data_dir)
             _update_index_fn = update_author_affiliation
 
             def _save_index_fn():
-                return save_author_index(
-                    data_dir, sorted(index_by_name.values(), key=lambda e: e["id"])
-                )
+                return save_author_index(data_dir, sorted(index_by_name.values(), key=lambda e: e["id"]))
         except ImportError:
             pass
 
