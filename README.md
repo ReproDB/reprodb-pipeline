@@ -77,7 +77,7 @@ The pipeline runs **15 stages** organised in dependency tiers (see `src/stages.p
 ```
 src/
 ├── scrapers/     Data collection from GitHub repos, ACM DL, USENIX, ACSAC, CHES, PETS
-├── enrichers/    Affiliation enrichment (AE members, CSRankings, OpenAlex)
+├── enrichers/    Affiliation enrichment (AE members, CSRankings, OpenAlex, co-author bridge)
 ├── generators/   Output generation — statistics, visualizations, rankings, profiles
 ├── models/       Pydantic data models → auto-exported as JSON Schemas
 └── utils/        Shared helpers (conference normalization, caching, HTTP, I/O)
@@ -127,13 +127,14 @@ src/
 </details>
 
 <details>
-<summary><strong>Enrichers</strong> (3 scripts)</summary>
+<summary><strong>Enrichers</strong> (4 scripts)</summary>
 
 | Script | Purpose |
 |--------|---------|
 | `enrich_affiliations_ae_members.py` | AE committee member affiliations |
 | `enrich_affiliations_csrankings.py` | CSRankings-based affiliations |
-| `enrich_affiliations_openalex.py` | OpenAlex-based affiliations |
+| `enrich_affiliations_openalex.py` | OpenAlex paper-title-based affiliations |
+| `enrich_affiliations_author_search.py` | OpenAlex co-author bridge affiliations |
 
 </details>
 
@@ -198,6 +199,7 @@ reprodb-pipeline/
 | GitHub API responses | `.cache/` | 1 hour |
 | DBLP extracted JSON | `.cache/dblp_extracted/` | Invalidated when XML changes |
 | DBLP XML freshness | `Last-Modified` HTTP header | Checked each run |
+| OpenAlex author bridge lookups | `.cache/author_search/` | 90 days |
 
 The `.cache/` directory is gitignored and never committed.
 

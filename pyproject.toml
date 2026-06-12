@@ -85,6 +85,7 @@ module = [
     "src.scrapers.generate_results",
     "src.scrapers.acsac_scrape",
     "src.enrichers.enrich_affiliations_openalex",
+    "src.enrichers.enrich_affiliations_author_search",
     "src.enrichers.enrich_affiliations_csrankings",
     "src.enrichers.enrich_affiliations_ae_members",
     "src.generators.output.generate_paper_index",
