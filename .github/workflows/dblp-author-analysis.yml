@@ -143,6 +143,29 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Validate DBLP artifact contents
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          # Ensure only expected files are uploaded — prevents accidentally
+          # bundling pipeline-owned files (e.g. artifacts.json, search_data.json).
+          EXPECTED=(
+            "website/src/_data/authors.yml"
+            "website/src/_data/author_summary.yml"
+            "website/src/_data/papers.json"
+            "website/src/assets/data/authors.json"
+            "website/src/assets/data/author_index.json"
+            "website/src/assets/data/paper_authors_map.json"
+            "website/src/assets/data/papers.json"
+          )
+          echo "DBLP artifact will contain:"
+          for f in "${EXPECTED[@]}"; do
+            if [[ -f "$f" ]]; then
+              echo "  ✓ $f ($(wc -c < "$f") bytes)"
+            else
+              echo "  ⚠ $f (missing — will be skipped)"
+            fi
+          done
+
       - name: Upload DBLP analysis results
         if: steps.check_changes.outputs.changed == 'true'
         uses: actions/upload-artifact@v5
@@ -152,7 +175,6 @@ jobs:
             website/src/_data/authors.yml
             website/src/_data/author_summary.yml
             website/src/_data/papers.json
-            website/src/assets/data/artifacts.json
             website/src/assets/data/authors.json
             website/src/assets/data/author_index.json
             website/src/assets/data/paper_authors_map.json
