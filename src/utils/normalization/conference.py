@@ -45,9 +45,19 @@ def _scan_area_confs(website_root: str, area: str) -> frozenset[str]:
 
 
 def _find_website_root() -> str | None:
-    """Try to locate the website repo relative to the pipeline."""
-    # Common locations when running from reprodb-pipeline/
-    for candidate in ("../reprodb.github.io", "reprodb.github.io"):
+    """Try to locate the website repo relative to the pipeline.
+
+    The website content lives under ``{repo}/src/content/`` (Jekyll source).
+    We return the path that contains ``content/systems/``.
+    """
+    for candidate in (
+        "../reprodb.github.io/src",
+        "../website/src",
+        "reprodb.github.io/src",
+        "../reprodb.github.io",
+        "../website",
+        "reprodb.github.io",
+    ):
         if os.path.isdir(os.path.join(candidate, "content", "systems")):
             return candidate
     return None
