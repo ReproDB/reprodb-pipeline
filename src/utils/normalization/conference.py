@@ -317,13 +317,26 @@ def normalize_name(name: str, *, strip_initials: bool = False) -> str:
 def normalize_title(title: str) -> str:
     """Normalize a paper title for fuzzy matching.
 
-    Lower-cases, strips punctuation (keeping word chars and spaces),
+    Decodes HTML entities, normalizes Unicode (NFKD, strip combining marks),
+    lower-cases, strips punctuation (keeping word chars and spaces),
     and collapses whitespace.  Used for deduplication and cross-source
     title matching.
     """
     if not title:
         return ""
-    return " ".join(re.sub(r"[^\w\s]", "", title.lower()).split())
+    import html
+
+    # Decode HTML entities (&amp; → &, etc.)
+    t = html.unescape(title)
+    # Unicode NFKD normalization (ﬁ→fi, ﬂ→fl, μ→μ, 𝜇→μ, – → -)
+    t = unicodedata.normalize("NFKD", t)
+    # Strip combining marks (accents that are separate code points after NFKD)
+    t = "".join(c for c in t if not unicodedata.combining(c))
+    # Strip known scraping artifacts
+    t = re.sub(r"\s*full strip note\s*$", "", t, flags=re.IGNORECASE)
+    # Strip trailing artifact tags like "[Artifacts]"
+    t = re.sub(r"\s*\[Artifacts?\]\s*$", "", t, flags=re.IGNORECASE)
+    return " ".join(re.sub(r"[^\w\s]", "", t.lower()).split())
 
 
 # ── Committee member cleaning ────────────────────────────────────────────────
@@ -342,6 +355,7 @@ DBLP_VENUE_MAP = {
     "SC ": "SC",  # space after to avoid false matches
     "Supercomputing": "SC",
     "FAST": "FAST",
+    "WOOT @ USENIX Security Symposium": "WOOT",  # Must precede "USENIX Security"
     "USENIX Security": "USENIXSEC",
     "ACSAC": "ACSAC",
     "PoPETs": "PETS",
@@ -351,6 +365,7 @@ DBLP_VENUE_MAP = {
     "IACR Trans. Cryptogr. Hardw. Embed. Syst": "CHES",  # DBLP journal form (post-2017)
     "NDSS": "NDSS",
     "WOOT": "WOOT",
+    "SysTEX @ CCS": "SYSTEX",  # DBLP booktitle for SysTEX co-located with CCS
     "SysTEX": "SYSTEX",
     "OSDI": "OSDI",
     "ATC": "ATC",

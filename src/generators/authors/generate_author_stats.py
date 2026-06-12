@@ -151,6 +151,9 @@ def parse_dblp_for_authors(
     # (author_name, conference) -> {year: set of normalized_title}
     venue_papers = defaultdict(lambda: defaultdict(set))
 
+    # Build index: (conf, year) -> {normalized_title: paper_dict}
+    dblp_by_venue_year: dict[tuple[str, int], dict[str, dict]] = defaultdict(dict)
+
     for conf, years in papers_by_venue.items():
         for year_str, paper_list in years.items():
             year = int(year_str) if year_str else 0
@@ -163,6 +166,9 @@ def parse_dblp_for_authors(
                 for author in authors:
                     if author:
                         venue_papers[(author, conf)][year].add(normalized)
+
+                # Store for lookup
+                dblp_by_venue_year[(conf, year)][normalized] = paper
 
                 # Match artifact titles
                 if normalized in titles_to_find:
@@ -187,6 +193,69 @@ def parse_dblp_for_authors(
 
                     papers_found.append(paper_info)
                     titles_to_find.remove(normalized)
+
+    # ── Second pass: fuzzy matching for remaining unmatched titles ──────────
+    if titles_to_find:
+        from difflib import SequenceMatcher
+
+        fuzzy_matched = 0
+        still_unmatched = []
+
+        for artifact_norm in list(titles_to_find):
+            artifact_meta = title_to_artifact.get(artifact_norm, {})
+            art_conf = artifact_meta.get("conference", "")
+            art_year = artifact_meta.get("year", 0)
+
+            # Look up DBLP papers for the same venue+year
+            candidates = dblp_by_venue_year.get((art_conf, art_year), {})
+            if not candidates:
+                still_unmatched.append(artifact_norm)
+                continue
+
+            # Find best match above threshold
+            best_ratio = 0.0
+            best_norm = None
+            for dblp_norm in candidates:
+                # Quick check: if one title is a substring of the other (prefix/suffix match)
+                if artifact_norm in dblp_norm or dblp_norm in artifact_norm:
+                    ratio = 0.85
+                else:
+                    ratio = SequenceMatcher(None, artifact_norm, dblp_norm).ratio()
+                if ratio > best_ratio:
+                    best_ratio = ratio
+                    best_norm = dblp_norm
+
+            if best_ratio >= 0.75 and best_norm is not None:
+                paper = candidates[best_norm]
+                authors = paper.get("authors", [])
+                doi = paper.get("doi", "")
+                doi_url = f"https://doi.org/{doi}" if doi else ""
+
+                paper_info = {
+                    "title": paper.get("title", ""),
+                    "normalized_title": artifact_norm,
+                    "authors": authors,
+                    "year": art_year if art_year else paper.get("year"),
+                    "artifact_year": art_year,
+                    "venue": art_conf,
+                    "conference": art_conf,
+                    "category": artifact_meta.get("category", "unknown"),
+                    "badges": artifact_meta.get("badges", []),
+                    "doi_url": doi_url,
+                }
+                papers_found.append(paper_info)
+                titles_to_find.remove(artifact_norm)
+                fuzzy_matched += 1
+
+                # Also track venue papers for these authors
+                for author in authors:
+                    if author:
+                        venue_papers[(author, art_conf)][art_year].add(artifact_norm)
+            else:
+                still_unmatched.append(artifact_norm)
+
+        if fuzzy_matched:
+            logger.info(f"Fuzzy matching resolved {fuzzy_matched} additional papers")
 
     if titles_to_find:
         logger.warning(f"Warning: {len(titles_to_find)} papers not found in DBLP")
