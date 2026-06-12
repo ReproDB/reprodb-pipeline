@@ -67,7 +67,6 @@ jobs:
           pip install jsonschema
 
       - name: Restore HTTP response cache
-        if: ${{ github.event_name != 'repository_dispatch' }}
         uses: actions/cache@v5
         with:
           path: reprodb-pipeline/src/.cache
@@ -89,6 +88,8 @@ jobs:
           echo "Pipeline run started at: $TIMESTAMP"
       
       - name: Generate statistics
+        env:
+          REPRODB_FRESH_SOURCE_DATA: ${{ github.event_name == 'repository_dispatch' && '1' || '0' }}
         run: |
           cd reprodb-pipeline
           python -m src.generators.output.generate_statistics \
@@ -195,6 +196,8 @@ jobs:
           python -m src.generators.authors.generate_area_authors --data_dir ../website/src
       
       - name: Generate committee statistics
+        env:
+          REPRODB_FRESH_SOURCE_DATA: ${{ github.event_name == 'repository_dispatch' && '1' || '0' }}
         run: |
           cd reprodb-pipeline
           python -m src.generators.committee_stats.generate_committee_stats \

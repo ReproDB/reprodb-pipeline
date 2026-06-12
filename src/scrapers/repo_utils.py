@@ -492,16 +492,21 @@ def _cached_get(url):
     is_content_url = "raw.githubusercontent.com" in url and (
         "/results.md" in url or "/result.md" in url or "/committee.md" in url or "/organizers.md" in url
     )
+    fresh_source_data = os.getenv("REPRODB_FRESH_SOURCE_DATA", "").strip().lower() in {"1", "true", "yes"}
+    bypass_http_cache = fresh_source_data and (is_github_api or is_content_url)
     ttl = CACHE_TTL_RESULTS if (is_github_api or is_content_url) else CACHE_TTL
 
-    cached = _read_cache(CACHE_DIR, url, ttl=ttl, namespace="http_get")
-    if cached is not _MISSING:
-        return cached
+    if not bypass_http_cache:
+        cached = _read_cache(CACHE_DIR, url, ttl=ttl, namespace="http_get")
+        if cached is not _MISSING:
+            return cached
+    else:
+        logger.info("  REPRODB_FRESH_SOURCE_DATA enabled: bypassing http_get cache for %s", url)
 
     headers = _github_headers() if is_github_api else {}
 
     # Use stored ETag for conditional request if available
-    entry = _read_cache_entry(CACHE_DIR, url, namespace="http_get")
+    entry = None if bypass_http_cache else _read_cache_entry(CACHE_DIR, url, namespace="http_get")
     if entry and entry.get("etag"):
         headers["If-None-Match"] = entry["etag"]
 
