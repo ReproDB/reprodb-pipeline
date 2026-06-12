@@ -123,18 +123,70 @@ jobs:
       
       - name: Merge DBLP results if available
         run: |
-          if [ -d "dblp-results" ] && [ "$(ls -A dblp-results)" ]; then
-            echo "Found DBLP analysis results, merging into website..."
-            cp -r dblp-results/_data/* website/src/_data/ 2>/dev/null || true
-            # Copy DBLP outputs but skip artifacts.json (generated fresh by generate_statistics)
-            for f in dblp-results/assets/data/*; do
-              [ "$(basename "$f")" = "artifacts.json" ] && continue
-              cp -r "$f" website/src/assets/data/ 2>/dev/null || true
-            done
-            echo "DBLP results merged successfully"
-          else
+          # Allowlist of files the DBLP workflow is permitted to provide.
+          # Any unexpected file in the artifact is rejected to prevent
+          # accidental overwrites of pipeline-owned outputs.
+          ALLOWED_DATA=(
+            "authors.json"
+            "author_index.json"
+            "paper_authors_map.json"
+            "papers.json"
+          )
+          ALLOWED_JEKYLL=(
+            "authors.yml"
+            "author_summary.yml"
+            "papers.json"
+          )
+
+          if [ ! -d "dblp-results" ] || [ -z "$(ls -A dblp-results 2>/dev/null)" ]; then
             echo "⚠️ No recent DBLP analysis results found (pipeline runs separately)"
+            exit 0
           fi
+
+          echo "Found DBLP analysis results, validating before merge..."
+          UNEXPECTED=0
+
+          # Validate assets/data files
+          if [ -d "dblp-results/assets/data" ]; then
+            for f in dblp-results/assets/data/*; do
+              name=$(basename "$f")
+              allowed=false
+              for a in "${ALLOWED_DATA[@]}"; do [[ "$name" == "$a" ]] && allowed=true && break; done
+              if [[ "$allowed" == "false" ]]; then
+                echo "::warning::Unexpected file in DBLP artifact: assets/data/$name (skipped)"
+                UNEXPECTED=$((UNEXPECTED + 1))
+              fi
+            done
+          fi
+
+          # Validate _data files
+          if [ -d "dblp-results/_data" ]; then
+            for f in dblp-results/_data/*; do
+              name=$(basename "$f")
+              allowed=false
+              for a in "${ALLOWED_JEKYLL[@]}"; do [[ "$name" == "$a" ]] && allowed=true && break; done
+              if [[ "$allowed" == "false" ]]; then
+                echo "::warning::Unexpected file in DBLP artifact: _data/$name (skipped)"
+                UNEXPECTED=$((UNEXPECTED + 1))
+              fi
+            done
+          fi
+
+          if [[ $UNEXPECTED -gt 0 ]]; then
+            echo "::warning::Skipped $UNEXPECTED unexpected file(s) from DBLP artifact"
+          fi
+
+          # Copy only allowlisted files
+          for name in "${ALLOWED_JEKYLL[@]}"; do
+            src="dblp-results/_data/$name"
+            [[ -f "$src" ]] && cp "$src" website/src/_data/
+          done
+          for name in "${ALLOWED_DATA[@]}"; do
+            src="dblp-results/assets/data/$name"
+            [[ -f "$src" ]] && cp "$src" website/src/assets/data/
+          done
+
+          echo "DBLP results merged successfully ($(echo ${#ALLOWED_DATA[@]} + ${#ALLOWED_JEKYLL[@]} | bc) allowed files)"
       
       - name: Generate per-area author data
         run: |
