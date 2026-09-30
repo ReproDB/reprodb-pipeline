@@ -120,7 +120,7 @@ jobs:
           fi
           python -m src.enrichers.enrich_affiliations_openalex \
             --authors_file website/src/_data/authors.yml \
-            --papers_file website/src/assets/data/paper_authors_map.json \
+            --papers_file website/src/_build/paper_authors_map.json \
             --data_dir website/src \
             --max_authors $MAX_AUTHORS \
             --verbose $RECHECK_FLAG || {
@@ -160,6 +160,7 @@ jobs:
             "website/src/assets/data/author_index.json"
             "website/src/assets/data/paper_authors_map.json"
             "website/src/assets/data/papers.json"
+            "website/src/_build/paper_authors_map.json"
           )
           echo "DBLP artifact will contain:"
           for f in "${EXPECTED[@]}"; do
@@ -183,6 +184,7 @@ jobs:
             website/src/assets/data/author_index.json
             website/src/assets/data/paper_authors_map.json
             website/src/assets/data/papers.json
+            website/src/_build/paper_authors_map.json
           retention-days: 7
 
       - name: Trigger statistics update

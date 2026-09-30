@@ -146,6 +146,12 @@ jobs:
             "author_summary.yml"
             "papers.json"
           )
+          # Intermediate files: downstream generators (search data, repo stats,
+          # cited artifacts) read _build/ in preference to assets/data/, so the
+          # fresh paper->authors map must replace the tracked _build copy.
+          ALLOWED_BUILD=(
+            "paper_authors_map.json"
+          )
 
           if [ ! -d "dblp-results" ] || [ -z "$(ls -A dblp-results 2>/dev/null)" ]; then
             echo "⚠️ No recent DBLP analysis results found (pipeline runs separately)"
@@ -181,6 +187,19 @@ jobs:
             done
           fi
 
+          # Validate _build files
+          if [ -d "dblp-results/_build" ]; then
+            for f in dblp-results/_build/*; do
+              name=$(basename "$f")
+              allowed=false
+              for a in "${ALLOWED_BUILD[@]}"; do [[ "$name" == "$a" ]] && allowed=true && break; done
+              if [[ "$allowed" == "false" ]]; then
+                echo "::warning::Unexpected file in DBLP artifact: _build/$name (skipped)"
+                UNEXPECTED=$((UNEXPECTED + 1))
+              fi
+            done
+          fi
+
           if [[ $UNEXPECTED -gt 0 ]]; then
             echo "::warning::Skipped $UNEXPECTED unexpected file(s) from DBLP artifact"
           fi
@@ -193,6 +212,11 @@ jobs:
           for name in "${ALLOWED_DATA[@]}"; do
             src="dblp-results/assets/data/$name"
             [[ -f "$src" ]] && cp "$src" website/src/assets/data/
+          done
+          mkdir -p website/src/_build
+          for name in "${ALLOWED_BUILD[@]}"; do
+            src="dblp-results/_build/$name"
+            [[ -f "$src" ]] && cp "$src" website/src/_build/
           done
 
           echo "DBLP results merged successfully ($(echo ${#ALLOWED_DATA[@]} + ${#ALLOWED_JEKYLL[@]} | bc) allowed files)"
