@@ -11,11 +11,16 @@ file is a list of entries::
     - title: "Paper title."
       authors: ["Jane Doe", "John Roe 0001"]
       page_link: "https://doi.org/..."
-      discovered_artifact: "https://github.com/org/repo"   # or null
+      artifacts_discovered:                 # ordered best score first; [] if none
+        - "https://github.com/org/repo"
+        - "https://doi.org/10.5281/zenodo.1"
+      validated: false
 
-Only entries whose ``discovered_artifact`` is non-null carry a usable link, but
-the total number of scanned papers per conference-year is also reported so that
-a discovery rate can be computed.
+The older schema used a single ``discovered_artifact: <url> | null`` key; it is
+still accepted.  Only entries with at least one link are returned, but the
+total number of scanned papers per conference-year is also reported so that a
+discovery rate can be computed.  All links are kept, normalised and
+de-duplicated, in ArtiFinder's order (best score first) as ``artifact_urls``.
 
 Public API:
     load_artifinder(conf_regex=None) -> ArtiFinderData
@@ -54,6 +59,7 @@ ARTIFINDER_LOCAL_ENV = "REPRODB_ARTIFINDER_DIR"
 # All ArtiFinder venues are security conferences.  CCS and SP are included for
 # completeness even though CCS is not (yet) tracked for AE in ReproDB.
 _VENUE_MAP: dict[str, tuple[str, str]] = {
+    "acsac": ("ACSAC", "security"),
     "ccs": ("CCS", "security"),
     "ndss": ("NDSS", "security"),
     "sp": ("SP", "security"),
@@ -74,7 +80,8 @@ class ArtiFinderData(NamedTuple):
     Attributes:
         entries: One dict per paper that has a discovered artifact link, with
             keys ``conference``, ``category``, ``year``, ``title``, ``authors``,
-            ``page_link``, ``discovered_artifact``.
+            ``page_link`` and ``artifact_urls`` (all discovered links, best
+            score first).
         counts: One dict per conference-year with keys ``conference``,
             ``category``, ``year``, ``total_papers`` (scanned) and
             ``discovered`` (papers with a non-null artifact link).
@@ -100,6 +107,34 @@ def normalize_artifact_url(url: str) -> str:
     if not re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*://", u):
         u = "https://" + u.lstrip("/")
     return u.rstrip("/")
+
+
+def _extract_artifact_urls(rec: dict) -> list[str]:
+    """Return the normalised, de-duplicated artifact URLs of a record.
+
+    Reads the current ``artifacts_discovered`` list (already ordered best score
+    first) and, for backwards compatibility, the legacy single-valued
+    ``discovered_artifact`` key.  Every link is kept as-is, including bare
+    hosts and org/profile pages.
+    """
+    raw: list = []
+    listed = rec.get("artifacts_discovered")
+    if isinstance(listed, list):
+        raw.extend(listed)
+    elif isinstance(listed, str):
+        raw.append(listed)
+    legacy = rec.get("discovered_artifact")
+    if legacy:
+        raw.append(legacy)
+
+    urls: list[str] = []
+    for item in raw:
+        if not isinstance(item, str) or not item.strip():
+            continue
+        url = normalize_artifact_url(item)
+        if url and url not in urls:
+            urls.append(url)
+    return urls
 
 
 def _clean_author(name: str) -> str:
@@ -215,8 +250,8 @@ def _parse_year_file(conf: str, area: str, year: int, raw_text: str) -> tuple[li
         if not title:
             continue
         total += 1
-        discovered = rec.get("discovered_artifact")
-        if not discovered:
+        urls = _extract_artifact_urls(rec)
+        if not urls:
             continue
         authors = [_clean_author(a) for a in (rec.get("authors") or []) if isinstance(a, str) and a.strip()]
         entries.append(
@@ -227,7 +262,7 @@ def _parse_year_file(conf: str, area: str, year: int, raw_text: str) -> tuple[li
                 "title": title,
                 "authors": authors,
                 "page_link": (rec.get("page_link") or None),
-                "discovered_artifact": normalize_artifact_url(str(discovered)),
+                "artifact_urls": urls,
             }
         )
     return entries, total
