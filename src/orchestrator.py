@@ -122,7 +122,7 @@ def _seed_staging(cfg: PipelineConfig) -> None:
 
 def _check_dblp(cfg: PipelineConfig) -> None:
     """Download or update the DBLP XML if needed."""
-    from scripts.download_dblp import download_dblp
+    from src.utils.apis.download_dblp import download_dblp
 
     logger.info("Checking DBLP freshness...")
     download_dblp(auto=True)

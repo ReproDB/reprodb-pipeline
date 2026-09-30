@@ -30,6 +30,7 @@ new DBLP API calls.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import html.entities
 import io
 import json
@@ -41,7 +42,7 @@ from pathlib import Path
 
 import lxml.etree as ET
 
-from src.utils.normalization.conference import venue_to_conference
+from src.utils.normalization.conference import venue_mapping_signature, venue_to_conference
 
 logger = logging.getLogger(__name__)
 # Where we write the extracted JSON files
@@ -68,10 +69,17 @@ def _is_fresh(dblp_file, extract_dir):
         return False
     try:
         with open(mtime_path) as f:
-            cached_mtime = float(f.read().strip())
-        return os.path.getmtime(dblp_file) == cached_mtime
+            lines = f.read().split("\n", 1)
+        cached_mtime = float(lines[0].strip())
+        cached_sig = lines[1].strip() if len(lines) > 1 else ""
+        # Invalidate when the venue mapping / known conference set changed
+        return os.path.getmtime(dblp_file) == cached_mtime and cached_sig == _signature()
     except (ValueError, OSError):
         return False
+
+
+def _signature() -> str:
+    return hashlib.sha256(venue_mapping_signature().encode()).hexdigest()
 
 
 # ---------------------------------------------------------------------------
@@ -176,7 +184,7 @@ def extract_dblp(dblp_file: str) -> tuple[str, str]:
 
         # --- Papers ---
         booktitle = elem.findtext("booktitle") or elem.findtext("journal") or ""
-        conf = venue_to_conference(booktitle)
+        conf = venue_to_conference(booktitle, elem.get("key", ""))
         if conf:
             year_str = elem.findtext("year")
             if year_str:
@@ -223,7 +231,7 @@ def extract_dblp(dblp_file: str) -> tuple[str, str]:
 
     # Record the DBLP file mtime for freshness checks
     with open(_mtime_file(extract_dir), "w") as f:
-        f.write(str(os.path.getmtime(dblp_file)))
+        f.write(f"{os.path.getmtime(dblp_file)}\n{_signature()}")
 
     sz_p = os.path.getsize(papers_path) // 1024 // 1024
     sz_a = os.path.getsize(affiliations_path) // 1024 // 1024

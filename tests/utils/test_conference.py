@@ -10,7 +10,23 @@ from src.utils.normalization.conference import (
     ensure_conference_pages,
     normalize_name,
     parse_conf_year,
+    venue_to_conference,
 )
+
+
+class TestVenueToConference:
+    def test_static_map(self):
+        assert venue_to_conference("USENIX Security Symposium") == "USENIXSEC"
+
+    def test_bare_booktitle_matches_known_conf(self):
+        assert venue_to_conference("SP") == "SP"
+
+    def test_dblp_key_series_fallback(self):
+        assert venue_to_conference("Some Odd Title", "conf/vehiclesec/Foo26") == "VEHICLESEC"
+
+    def test_unknown_series_ignored(self):
+        assert venue_to_conference("XYZ", "conf/xyz/Foo26") is None
+        assert venue_to_conference("") is None
 
 
 class TestConfArea:

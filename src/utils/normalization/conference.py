@@ -373,19 +373,52 @@ DBLP_VENUE_MAP = {
 }
 
 
-def venue_to_conference(booktitle: str) -> str | None:
-    """Map a DBLP booktitle to our conference identifier, or None."""
-    if not booktitle:
-        return None
-    bt = booktitle.strip()
+_DBLP_CONF_KEY_RE = re.compile(r"^conf/([^/]+)/")
 
-    # Handle SC explicitly to avoid false positives (e.g., matching inside "ACSAC")
-    if bt == "SC" or bt.startswith("SC "):
-        return "SC"
 
-    for pattern, conf in DBLP_VENUE_MAP.items():
-        if pattern in booktitle:
-            return conf
+def venue_mapping_signature() -> str:
+    """Stable string identifying the current venue-detection inputs.
+
+    Used to invalidate the extracted DBLP cache whenever the static map or the
+    set of known conferences (discovered from the website / artifact sites)
+    changes, so newly added conferences get (re-)extracted automatically.
+    """
+    return "|".join(
+        [
+            ",".join(f"{k}={v}" for k, v in sorted(DBLP_VENUE_MAP.items())),
+            ",".join(sorted(ALL_CONFS)),
+        ]
+    )
+
+
+def venue_to_conference(booktitle: str, dblp_key: str | None = None) -> str | None:
+    """Map a DBLP record to our conference identifier, or None.
+
+    Resolution order:
+      1. Static substring map (:data:`DBLP_VENUE_MAP`).
+      2. Booktitle exactly equal to a known conference name (e.g. ``SP``).
+      3. DBLP key series (``conf/sp/BurkeVSM26`` → ``SP``) when the series
+         name matches a known conference.  This makes newly discovered
+         conferences work without touching the static map.
+    """
+    bt = (booktitle or "").strip()
+
+    if bt:
+        # Handle SC explicitly to avoid false positives (e.g., matching inside "ACSAC")
+        if bt == "SC" or bt.startswith("SC "):
+            return "SC"
+
+        for pattern, conf in DBLP_VENUE_MAP.items():
+            if pattern in bt:
+                return conf
+
+        if bt.upper() in ALL_CONFS:
+            return bt.upper()
+
+    if dblp_key:
+        m = _DBLP_CONF_KEY_RE.match(dblp_key)
+        if m and m.group(1).upper() in ALL_CONFS:
+            return m.group(1).upper()
     return None
 
 
