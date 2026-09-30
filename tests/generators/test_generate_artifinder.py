@@ -220,6 +220,17 @@ class TestGenerateArtifinderEndToEnd:
         assert aa["someone else"][0]["title"] == "Untracked Venue Paper."
         assert aa["someone else"][0]["url"] == "https://github.com/foo/bar"
 
+    def test_no_results_raises(self, tmp_website, monkeypatch):
+        monkeypatch.setattr(
+            g,
+            "load_artifinder",
+            lambda conf_regex=None, min_year=None, local_dir=None: af.ArtiFinderData([], []),
+        )
+        with pytest.raises(af.ArtiFinderNoResultsError):
+            g.generate_artifinder(str(tmp_website), min_year=2017)
+        # Nothing is written, so earlier outputs are never clobbered.
+        assert not (tmp_website / "_data" / "artifinder_summary.yml").exists()
+
     def test_missing_artifacts_file_is_safe(self, tmp_website, _patch_loader):
         summary = g.generate_artifinder(str(tmp_website), min_year=2017)
         assert summary["total_matched_ae"] == 0

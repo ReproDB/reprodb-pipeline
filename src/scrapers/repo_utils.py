@@ -540,7 +540,13 @@ def _cached_get(url):
 
         response.raise_for_status()
     except requests.RequestException as e:
-        logger.warning(f"  HTTP request error for {url}: {e}")
+        status = getattr(getattr(e, "response", None), "status_code", None)
+        if status == 404 and is_content_url:
+            # Expected: probing committee.md vs organizers.md, or conferences
+            # that have not published a committee/results page yet.
+            logger.debug(f"  Not found (404): {url}")
+        else:
+            logger.warning(f"  HTTP request error for {url}: {e}")
         return None
     body = response.text
     etag = response.headers.get("ETag")

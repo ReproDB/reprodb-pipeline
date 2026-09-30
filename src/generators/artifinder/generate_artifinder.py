@@ -32,7 +32,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 
 from src.models.artifacts.artifacts import Artifact
-from src.scrapers.artifinder import DEFAULT_MIN_YEAR, load_artifinder
+from src.scrapers.artifinder import DEFAULT_MIN_YEAR, ArtiFinderNoResultsError, load_artifinder
 from src.scrapers.repo_utils import _normalise_github_repo_url
 from src.utils.io.io import load_json, resolve_data_path, save_json, save_validated_json, save_yaml
 from src.utils.normalization.conference import normalize_name, normalize_title
@@ -327,7 +327,11 @@ def generate_artifinder(
 
     data = load_artifinder(conf_regex=conf_regex, min_year=min_year, local_dir=local_dir)
     if not data.entries:
-        logger.warning("ArtiFinder: no entries loaded; writing empty outputs")
+        raise ArtiFinderNoResultsError(
+            "ArtiFinder returned no results "
+            f"(conf_regex={conf_regex!r}, min_year={min_year}, local_dir={local_dir!r}); "
+            "check network access to GitHub or the filters. Existing outputs were left untouched."
+        )
 
     artifacts = load_json(assets_data / "artifacts.json", default=[]) or []
 

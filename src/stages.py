@@ -110,7 +110,8 @@ STAGES: tuple[Stage, ...] = (
         module="src.generators.artifinder.generate_artifinder",
         description="Integrate ArtiFinder-discovered artifact links (no badges, excluded from scores)",
         depends_on=("statistics", "author_stats"),
-        optional=True,
+        # Not optional: an empty ArtiFinder result (ArtiFinderNoResultsError)
+        # must fail the run so the failure is noticed instead of going unseen.
         # Participate in the content-hash skip cache: re-run when the AE
         # artifacts or the author map change. The remote ArtiFinder-Data set is
         # fetched through the shared HTTP cache, and the day-long TTL bounds how

@@ -74,6 +74,16 @@ _YEAR_RE = re.compile(r"^(\d{4})\.ya?ml$")
 DEFAULT_MIN_YEAR = 2017
 
 
+class ArtiFinderNoResultsError(RuntimeError):
+    """Raised when ArtiFinder yields no discovered-artifact entries at all.
+
+    This usually means the upstream data could not be fetched (network/proxy
+    problem, GitHub rate limiting, a changed repository layout) or that the
+    ``conf_regex`` / ``min_year`` filters excluded everything. Failing loudly
+    prevents silently overwriting previously generated outputs with empty ones.
+    """
+
+
 class ArtiFinderData(NamedTuple):
     """Parsed ArtiFinder data set.
 
