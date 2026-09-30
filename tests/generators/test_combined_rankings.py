@@ -255,3 +255,62 @@ class TestMergeRankings:
         result = _merge_rankings(authors, [])
         # Both have same combined_score → same rank
         assert result[0]["rank"] == result[1]["rank"] == 1
+
+
+class TestPerConferenceRankings:
+    """Per-conference ``{conf}_combined_rankings.json`` generation."""
+
+    @staticmethod
+    def _author(name, conf):
+        return {
+            "name": name,
+            "display_name": name,
+            "affiliation": "MIT",
+            "artifact_count": 3,
+            "total_papers": 3,
+            "category": "security",
+            "conferences": [conf],
+            "years": [2026],
+            "year_range": "2026-2026",
+            "recent_count": 3,
+            "artifact_citations": 0,
+            "badges_available": 3,
+            "badges_functional": 3,
+            "badges_reproducible": 3,
+            "artifact_pct": 100.0,
+            "repro_pct": 100.0,
+            "functional_pct": 100.0,
+            "papers": [],
+            "papers_without_artifacts": [],
+        }
+
+    def test_conf_authors_in_build_dir_are_ranked(self, tmp_website):
+        """``_build/{conf}_conf_authors.json`` (where generate_area_authors writes) must be picked up."""
+        from src.generators.rankings.generate_combined_rankings import generate_combined_rankings
+        from tests.conftest import read_json, write_json
+
+        assets = tmp_website / "assets" / "data"
+        for name in ("authors", "systems_authors", "security_authors", "ae_members"):
+            write_json(str(assets / f"{name}.json"), [])
+        write_json(str(tmp_website / "_build" / "sp_conf_authors.json"), [self._author("Alice Smith", "SP")])
+
+        generate_combined_rankings(str(tmp_website))
+
+        ranked = read_json(str(assets / "sp_combined_rankings.json"))
+        assert [r["name"] for r in ranked] == ["Alice Smith"]
+
+    def test_stale_legacy_file_does_not_shadow_build_file(self, tmp_website):
+        """A legacy assets/data copy must not hide conferences that only exist in _build/."""
+        from src.generators.rankings.generate_combined_rankings import generate_combined_rankings
+        from tests.conftest import read_json, write_json
+
+        assets = tmp_website / "assets" / "data"
+        for name in ("authors", "systems_authors", "security_authors", "ae_members"):
+            write_json(str(assets / f"{name}.json"), [])
+        write_json(str(assets / "ndss_conf_authors.json"), [self._author("Bob Jones", "NDSS")])
+        write_json(str(tmp_website / "_build" / "sp_conf_authors.json"), [self._author("Alice Smith", "SP")])
+
+        generate_combined_rankings(str(tmp_website))
+
+        assert read_json(str(assets / "sp_combined_rankings.json"))
+        assert read_json(str(assets / "ndss_combined_rankings.json"))
