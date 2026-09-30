@@ -347,6 +347,23 @@ def main():
         else:
             logger.info(f"  ✗ {area_combined_path} not found")
 
+    # Process per-conference combined rankings ({conf}_combined_rankings.json)
+    # into {conf}_institution_rankings.json.  The conference pages load both
+    # files, so a missing institution file shows "HTTP 404" on the page.
+    # Conferences are discovered from the combined files, so new conferences
+    # need no code change.
+    logger.info("Processing per-conference institution rankings...")
+    non_conf_prefixes = {"systems", "security"}
+    for conf_path in sorted(data_dir.glob("*_combined_rankings.json")):
+        prefix = conf_path.name[: -len("_combined_rankings.json")]
+        if prefix in non_conf_prefixes:
+            continue
+        conf_institutions = aggregate_by_institution(load_combined_ranking(conf_path))
+        _enrich_with_country(conf_institutions)
+        conf_output = data_dir / f"{prefix}_institution_rankings.json"
+        save_validated_json(conf_output, conf_institutions, InstitutionRanking)
+        logger.info(f"  ✓ Generated {conf_output} ({len(conf_institutions)} institutions)")
+
 
 if __name__ == "__main__":
     from src.utils.io.logging_config import setup_logging

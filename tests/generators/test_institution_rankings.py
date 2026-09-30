@@ -134,3 +134,33 @@ class TestAggregateByInstitution:
         data = [_person(artifact_count=2, badges_reproducible=5, combined_score=10)]
         with pytest.raises(ValueError, match="Invariant violation"):
             aggregate_by_institution(data)
+
+
+class TestPerConferenceInstitutionRankings:
+    """``{conf}_institution_rankings.json`` is produced for every ``{conf}_combined_rankings.json``."""
+
+    def test_main_generates_file_per_conference(self, tmp_path, monkeypatch):
+        from src.generators.rankings import generate_institution_rankings as gir
+        from tests.conftest import read_json, write_json
+
+        data_dir = tmp_path / "assets" / "data"
+        person = _person(conferences=["SP"], years={"2026": 2})
+        # Overall + per-area files plus two conferences, one of them brand new.
+        for name in ("combined", "systems_combined", "security_combined", "sp_combined", "cais_combined"):
+            write_json(str(data_dir / f"{name}_rankings.json"), [person])
+
+        # Keep the test hermetic: the real classifier downloads a university list.
+        monkeypatch.setattr(gir, "_build_classifier", lambda: (None, {}))
+        monkeypatch.setattr(gir, "_classify_country", lambda *_a, **_k: ("United States", "US"))
+        monkeypatch.setattr("sys.argv", ["prog", "--data_dir", str(tmp_path)])
+        gir.main()
+
+        for conf in ("sp", "cais"):
+            ranked = read_json(str(data_dir / f"{conf}_institution_rankings.json"))
+            assert [r["affiliation"] for r in ranked] == ["Massachusetts Institute of Technology"]
+            assert "country_code" in ranked[0]
+        # Area-level outputs are unchanged and not mistaken for conferences.
+        assert (data_dir / "security_institution_rankings.json").exists()
+        assert not (data_dir / "systems_combined_institution_rankings.json").exists()
+        assert not (data_dir / "combined_institution_rankings.json").exists()
+        assert not (data_dir / "security_institution_rankings_institution_rankings.json").exists()
