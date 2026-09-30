@@ -552,11 +552,15 @@ def generate_combined_rankings(data_dir: str) -> None:
     # Discover conferences from {conf}_conf_authors.json files in _build/
     import glob
 
-    build_dir = assets_data.parent / "_build"
+    # NOTE: _build/ lives directly under data_dir (see generate_area_authors),
+    # NOT under data_dir/assets/.
+    build_dir = Path(data_dir) / "_build"
     conf_author_files = glob.glob(str(build_dir / "*_conf_authors.json"))
-    # Fall back to legacy location (assets/data/) for backward compatibility
-    if not conf_author_files:
-        conf_author_files = glob.glob(str(assets_data / "*_conf_authors.json"))
+    # Fall back to legacy location (assets/data/) for backward compatibility.
+    # Only use legacy files for conferences that have no fresh _build/ file, so
+    # stale copies can never shadow newly generated ones.
+    built = {Path(f).name for f in conf_author_files}
+    conf_author_files += [f for f in glob.glob(str(assets_data / "*_conf_authors.json")) if Path(f).name not in built]
     for conf_author_path in sorted(conf_author_files):
         conf_lower = Path(conf_author_path).name.replace("_conf_authors.json", "")
         conf_upper = conf_lower.upper()
