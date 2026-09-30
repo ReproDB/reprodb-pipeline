@@ -34,7 +34,7 @@ def _entry(conf, year, title, authors, url):
         "title": title,
         "authors": authors,
         "page_link": None,
-        "discovered_artifact": url,
+        "artifact_urls": [url] if isinstance(url, str) else list(url),
     }
 
 
@@ -96,6 +96,21 @@ class TestMatchEntries:
         records = g.match_entries(entries, artifacts, {})
         assert records[0]["matched_ae"] is False
 
+    def test_all_links_backpatched_in_order(self):
+        artifacts = [_artifact("NDSS", 2023, "Paper.", ["available"], ["https://github.com/x/y"], paper_id=1)]
+        entries = [
+            _entry(
+                "NDSS",
+                2023,
+                "Paper.",
+                [],
+                ["https://github.com/x/y/", "https://github.com/org", "https://doi.org/10.5281/zenodo.1"],
+            )
+        ]
+        g.match_entries(entries, artifacts, {})
+        # Existing URL skipped; the rest kept (incl. org page) in given order.
+        assert artifacts[0]["artifinder_urls"] == ["https://github.com/org", "https://doi.org/10.5281/zenodo.1"]
+
     def test_badges_never_changed(self):
         artifacts = [_artifact("NDSS", 2023, "Paper.", ["available", "functional"], [], paper_id=1)]
         entries = [_entry("NDSS", 2023, "Paper.", [], "https://github.com/x/y")]
@@ -126,6 +141,12 @@ class TestAuthorIndex:
         assert set(idx.keys()) == {"john roe", "jane doe"}
         assert idx["jane doe"][0]["title"] == "Unmatched."
         assert idx["john roe"][0]["url"] == "https://github.com/c/d"
+        assert idx["john roe"][0]["urls"] == ["https://github.com/c/d"]
+
+    def test_search_entry_lists_all_links(self):
+        entries = [_entry("CCS", 2023, "Unmatched.", ["A B"], ["https://github.com/c/d", "https://github.com/c"])]
+        rows = g._build_search_entries(entries, [{"matched_ae": False}])
+        assert rows[0]["artifinder_urls"] == ["https://github.com/c/d", "https://github.com/c"]
 
 
 class TestGenerateArtifinderEndToEnd:

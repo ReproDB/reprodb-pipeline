@@ -119,7 +119,7 @@ class TestLoadArtifinder:
     def test_bare_github_url_normalized(self):
         data = af.load_artifinder(min_year=None)
         matched = next(e for e in data.entries if e["title"] == "Matched Paper.")
-        assert matched["discovered_artifact"] == "https://github.com/org/repo"
+        assert matched["artifact_urls"] == ["https://github.com/org/repo"]
 
     def test_category_is_security(self):
         data = af.load_artifinder(min_year=None)
@@ -134,6 +134,59 @@ class TestLoadArtifinder:
         data = af.load_artifinder()
         assert data.entries == []
         assert data.counts == []
+
+
+class TestNewSchema:
+    """Current ArtiFinder-Data schema: ``artifacts_discovered`` is a list."""
+
+    _YAML = """
+- title: "Two Links."
+  authors: ["Jane Doe"]
+  page_link: "https://doi.org/10.1/x"
+  artifacts_discovered:
+    - github.com/org/repo/
+    - https://doi.org/10.5281/zenodo.1
+    - https://github.com/org/repo
+  validated: false
+- title: "Empty List."
+  authors: ["A B"]
+  artifacts_discovered: []
+  validated: false
+- title: "Org Page First."
+  authors: ["A B"]
+  artifacts_discovered:
+    - https://github.com/someorg
+    - https://github.com/someorg/tool
+    - https://github.com/
+  validated: false
+"""
+
+    def test_parse(self):
+        entries, total = af._parse_year_file("NDSS", "security", 2024, self._YAML)
+        assert total == 3
+        assert len(entries) == 2  # the empty-list paper has no link
+        # Normalised, de-duplicated, order (= score) preserved.
+        assert entries[0]["artifact_urls"] == [
+            "https://github.com/org/repo",
+            "https://doi.org/10.5281/zenodo.1",
+        ]
+
+    def test_all_links_kept_in_order_no_filtering(self):
+        entries, _ = af._parse_year_file("NDSS", "security", 2024, self._YAML)
+        e = next(e for e in entries if e["title"] == "Org Page First.")
+        # Org pages and bare hosts are ordinary links: nothing dropped or reordered.
+        assert e["artifact_urls"] == [
+            "https://github.com/someorg",
+            "https://github.com/someorg/tool",
+            "https://github.com",
+        ]
+
+    def test_legacy_key_still_supported(self):
+        urls = af._extract_artifact_urls({"discovered_artifact": "github.com/a/b"})
+        assert urls == ["https://github.com/a/b"]
+
+    def test_acsac_venue_mapped(self):
+        assert af._VENUE_MAP["acsac"] == ("ACSAC", "security")
 
 
 class TestLoadArtifinderLocal:

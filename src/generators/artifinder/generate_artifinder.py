@@ -116,7 +116,7 @@ def match_entries(
         conf = str(entry["conference"]).upper()
         year = int(entry["year"])
         nt = normalize_title(entry["title"])
-        url = entry["discovered_artifact"]
+        urls = entry["artifact_urls"]
         entry_authors = _author_key_set(entry.get("authors", []))
 
         # First pass: exact normalised title.
@@ -139,7 +139,7 @@ def match_entries(
             {
                 "conference": entry["conference"],
                 "year": year,
-                "artifact_url": url,
+                "artifact_urls": urls,
                 "matched_ae": matched,
             }
         )
@@ -150,8 +150,10 @@ def match_entries(
             existing = set(art.get("artifact_urls", [])) | set(art.get("artifinder_urls", []))
             # Compare on a scheme-insensitive / trailing-slash-insensitive basis.
             norm_existing = {u.rstrip("/") for u in existing}
-            if url.rstrip("/") not in norm_existing:
-                art.setdefault("artifinder_urls", []).append(url)
+            for url in urls:  # keeps ArtiFinder's order (best score first)
+                if url.rstrip("/") not in norm_existing:
+                    art.setdefault("artifinder_urls", []).append(url)
+                    norm_existing.add(url.rstrip("/"))
 
     if fuzzy_matched:
         logger.info("  ArtiFinder: %d links matched to AE papers via fuzzy title fallback", fuzzy_matched)
@@ -169,7 +171,7 @@ def _build_stats(
         cy = (r["conference"], r["year"])
         if r["matched_ae"]:
             matched_by_cy[cy] += 1
-        if _normalise_github_repo_url(r["artifact_url"]):
+        if any(_normalise_github_repo_url(u) for u in r["artifact_urls"]):
             github_by_cy[cy] += 1
 
     by_year_acc: dict[int, dict] = defaultdict(
@@ -212,7 +214,7 @@ def _build_stats(
     total_papers = sum(c["total_papers"] for c in counts)
     total_discovered = len(records)
     total_matched = sum(1 for r in records if r["matched_ae"])
-    total_github = sum(1 for r in records if _normalise_github_repo_url(r["artifact_url"]))
+    total_github = sum(1 for r in records if any(_normalise_github_repo_url(u) for u in r["artifact_urls"]))
     years = [c["year"] for c in counts]
     summary = {
         "total_papers": total_papers,
@@ -252,7 +254,7 @@ def _build_search_entries(entries: list[dict], records: list[dict]) -> list[dict
             "year": int(entry["year"]),
             "badges": [],
             "artifact_urls": [],
-            "artifinder_urls": [entry["discovered_artifact"]],
+            "artifinder_urls": list(entry["artifact_urls"]),
             "doi_url": page if is_doi else "",
             "authors": entry.get("authors", []),
             "affiliations": [],
@@ -298,7 +300,10 @@ def _build_author_index(entries: list[dict], records: list[dict]) -> dict[str, l
             "title": entry["title"].strip(),
             "conference": entry["conference"],
             "year": int(entry["year"]),
-            "url": entry["discovered_artifact"],
+            "urls": list(entry["artifact_urls"]),
+            # Kept for the currently deployed profile page, which reads a single
+            # ``url``; equals the first (best-scored) link.
+            "url": entry["artifact_urls"][0],
             "authors": entry.get("authors", []),
         }
         for author in entry.get("authors", []):
